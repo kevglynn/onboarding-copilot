@@ -308,6 +308,7 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "fastmcp" },
     { name = "pytest" },
     { name = "ruff" },
 ]
@@ -317,6 +318,7 @@ mcp = [
 
 [package.metadata]
 requires-dist = [
+    { name = "engineering-onboarding-copilot", extras = ["mcp"], marker = "extra == 'dev'" },
     { name = "fastmcp", marker = "extra == 'mcp'", specifier = ">=2.0" },
     { name = "pydantic", specifier = ">=2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
@@ -325,7 +327,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.11" },
     { name = "typer", specifier = ">=0.15" },
 ]
-provides-extras = ["dev", "mcp"]
+provides-extras = ["mcp", "dev"]
 
 [[package]]
 name = "exceptiongroup"
