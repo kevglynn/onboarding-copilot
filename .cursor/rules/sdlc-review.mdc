@@ -1,0 +1,32 @@
+---
+description: "SDLC review stage — active when generating briefs or reviewing contributions"
+globs: "**/BRIEFS.md"
+alwaysApply: false
+---
+
+# Review Stage
+
+When generating briefs or reviewing a contribution:
+
+1. **Run `ob check` first.** Before any review, validate the workspace:
+   ```
+   ob check <workspace>
+   ```
+   If violations are found, address them before proceeding to review.
+
+2. **Generate role briefs.** Use `ob brief` to produce audience-specific views:
+   ```
+   ob brief --role engineer --workspace <workspace>
+   ob brief --role pm --workspace <workspace>
+   ob brief --role qa --workspace <workspace>
+   ob brief --role devops --workspace <workspace>
+   ```
+
+3. **Each role gets different content:**
+   - **Engineer:** Implementation checklist, file map, convention reminders
+   - **PM:** Scope, user impact, kickoff questions
+   - **QA:** Test strategy, edge cases, rejected test names
+   - **DevOps:** CI guardrails, pipeline signal, boundary enforcement
+
+4. **Verify before merge.** The CI pipeline runs the same `ob check` that
+   runs locally. A green local check means CI will also pass.

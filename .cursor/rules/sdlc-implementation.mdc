@@ -1,0 +1,25 @@
+---
+description: "SDLC implementation stage — active when editing source files in skimage/"
+globs: "**/skimage/**/*.py"
+alwaysApply: false
+---
+
+# Implementation Stage
+
+When writing or reviewing implementation code:
+
+1. **Follow naming conventions.** Functions and variables use `snake_case`.
+   Module-level constants use `UPPER_SNAKE_CASE`.
+
+2. **Write numpydoc docstrings.** Every public function needs `Parameters`,
+   `Returns`, and `Examples` sections. Array parameters MUST include shape
+   notation like `(M, N) ndarray`.
+
+3. **Never import from forbidden paths.** Do not import from `skimage._shared`,
+   `skimage._vendored`, or `skimage._build`. These are internal modules.
+
+4. **Check for deprecated APIs.** Before using any skimage function, verify it's
+   not in the deprecated list. Run `ob check .` to validate.
+
+5. **Input validation.** Validate array dimensions and parameter ranges.
+   Raise `ValueError` with descriptive messages including the actual values.

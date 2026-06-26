@@ -1,0 +1,77 @@
+---
+description: "scikit-image contribution conventions — active when editing Python files in this workspace"
+globs: "**/*.py"
+alwaysApply: false
+---
+
+# scikit-image Contribution Conventions
+
+These conventions are loaded from `profiles/scikit-image.yaml` — the team-owned
+source of truth. When reviewing or generating code in this workspace, enforce
+these rules.
+
+## Naming
+
+- Functions and variables: `snake_case`
+- Import convention: `import skimage as ski`
+
+## Docstrings — NumPy Style (numpydoc)
+
+Every public function MUST have a docstring with these sections:
+
+```
+Parameters
+----------
+image : (M, N) ndarray
+    Description of the parameter.
+
+Returns
+-------
+result : ndarray
+    Description of the return value.
+
+Examples
+--------
+>>> # Usage example here
+```
+
+- Array parameters MUST use shape notation: `(M, N)`, `(M, N, 3)`, etc.
+- Do NOT use Google-style `Args:` / `Returns:` — this project uses numpydoc.
+
+## Approved Directories
+
+New source files may only be created in these directories:
+- `skimage/color/`, `skimage/data/`, `skimage/draw/`
+- `skimage/exposure/`, `skimage/feature/`, `skimage/filters/`
+- `skimage/graph/`, `skimage/io/`, `skimage/measure/`
+- `skimage/metrics/`, `skimage/morphology/`, `skimage/registration/`
+- `skimage/restoration/`, `skimage/segmentation/`
+- `skimage/transform/`, `skimage/util/`
+
+## Forbidden Paths
+
+NEVER import from or write to:
+- `skimage/_shared/` — internal utilities, not part of the public API
+- `skimage/_vendored/` — vendored third-party code
+- `skimage/_build/` — build artifacts
+
+## Deprecated APIs
+
+Do NOT use these — suggest the replacement instead:
+- `skimage.filters.median` → `skimage.filters.rank.median`
+- `skimage.measure.marching_cubes_lewiner` → `skimage.measure.marching_cubes`
+- `skimage.transform.estimate_transform` → `skimage.transform.AffineTransform.estimate`
+
+## Testing
+
+- Framework: pytest
+- Test file naming: `test_*.py` in `{module}/tests/`
+- Run tests with: `spin test`
+- Every contribution MUST include tests with:
+  - Shape preservation test
+  - Dtype roundtrip test
+
+## The CLI
+
+Run `ob check <workspace>` to validate against these conventions deterministically.
+Run `ob scaffold --task "..."` to create a convention-compliant workspace.

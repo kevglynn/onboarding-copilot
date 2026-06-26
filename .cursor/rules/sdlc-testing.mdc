@@ -1,0 +1,29 @@
+---
+description: "SDLC testing stage — active when editing test files"
+globs: "**/test_*.py"
+alwaysApply: false
+---
+
+# Testing Stage
+
+When writing or reviewing tests:
+
+1. **Test file location.** Tests go in `{module}/tests/test_{name}.py`.
+   Run `ob check .` to verify the test file exists and is properly located.
+
+2. **Required test patterns.** Every contribution MUST include:
+   - **Shape preservation test** — output shape equals input shape
+   - **Dtype roundtrip test** — output dtype matches expected convention
+
+3. **Descriptive test names.** Test names must describe what is being tested:
+   - Good: `test_output_shape_preserved`, `test_rejects_3d_input`
+   - Bad: `test_it_works`, `test_result`, `test_function`
+
+4. **Edge cases to consider:**
+   - Very small inputs (degenerate dimensions)
+   - NaN / Inf values in numeric arrays
+   - Dtype boundaries (uint8 overflow, float precision)
+   - Empty inputs (zero-length arrays)
+
+5. **Framework:** pytest with strict warnings enabled.
+   Run with `spin test` (not bare `pytest` — Meson build system requires it).

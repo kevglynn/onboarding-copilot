@@ -1,0 +1,26 @@
+---
+description: "SDLC planning stage — active when editing PLAN.md or discussing task planning"
+globs: "**/PLAN.md"
+alwaysApply: false
+---
+
+# Planning Stage
+
+When helping an engineer plan a contribution:
+
+1. **Check the profile first.** Read `profiles/scikit-image.yaml` to understand
+   what conventions apply before suggesting any implementation approach.
+
+2. **Verify the target directory.** The contribution must go in an approved
+   directory. Run `ob scaffold --task "..."` to generate a compliant workspace
+   rather than creating files manually.
+
+3. **Draft the PLAN.md** with:
+   - Task description
+   - Target files (source + test)
+   - Conventions that apply (cite rule IDs from the profile)
+   - Checklist from the profile's `contribution_checklist`
+
+4. **Flag risks early.** If the task touches deprecated APIs, forbidden paths,
+   or requires changes outside approved directories, call this out in the plan
+   before any code is written.
