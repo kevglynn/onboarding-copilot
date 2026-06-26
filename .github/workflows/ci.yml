@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv venv && source .venv/bin/activate && uv pip install -e ".[dev]"
+      - run: source .venv/bin/activate && ruff check .
+      - run: source .venv/bin/activate && ruff format --check .
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv venv && source .venv/bin/activate && uv pip install -e ".[dev]"
+      - run: source .venv/bin/activate && pytest -v
+
+  check-bad:
+    name: "ob check — bad-first-contrib (expect failure)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv venv && source .venv/bin/activate && uv pip install -e ".[dev]"
+      - name: Verify bad example fails
+        run: |
+          source .venv/bin/activate
+          if ob check examples/bad-first-contrib 2>&1; then
+            echo "::error::Expected ob check to fail on bad-first-contrib"
+            exit 1
+          else
+            echo "ob check correctly rejected bad-first-contrib"
+          fi
+
+  check-good:
+    name: "ob check — safe-first-contrib (expect pass)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv venv && source .venv/bin/activate && uv pip install -e ".[dev]"
+      - run: source .venv/bin/activate && ob check examples/safe-first-contrib
+
+  briefs:
+    name: Role Briefs → Step Summary
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv venv && source .venv/bin/activate && uv pip install -e ".[dev]"
+
+      - name: Generate PM brief
+        run: |
+          source .venv/bin/activate
+          echo "## PM Brief" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          ob brief --role pm --workspace examples/safe-first-contrib --format markdown >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate QA brief
+        run: |
+          source .venv/bin/activate
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## QA Brief" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          ob brief --role qa --workspace examples/safe-first-contrib --format markdown >> $GITHUB_STEP_SUMMARY
+
+      - name: Generate DevOps brief
+        run: |
+          source .venv/bin/activate
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## DevOps Brief" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          ob brief --role devops --workspace examples/safe-first-contrib --format markdown >> $GITHUB_STEP_SUMMARY
