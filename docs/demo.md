@@ -67,16 +67,22 @@ in real time — first by Cursor's rules, then by the CLI.
 
 1. Open `examples/bad-first-contrib/filters/_local_contrast.py` in the editor
 2. Point out the violations visually (deprecated API, TODO-only body)
-3. In Cursor chat/composer, ask: "Review this file against our scikit-image conventions"
-4. The scikit-image-conventions rule activates → agent identifies the violations,
-   quotes the convention, explains what to do instead
+3. In Cursor chat/composer, type the exact prompt:
+   "Review this file against our scikit-image conventions and list every
+   violation with its rule ID"
+4. The scikit-image-conventions rule activates → agent identifies the
+   violations, cites the matching `SK-*` rule IDs, explains what to do instead
+
+> Rehearse this beat with `docs/cursor-rule-verification.md` before the
+> interview — it has the exact expected output and pass criteria.
 
 **Narration:**
 
 > "This is a new engineer's first attempt. They used a deprecated API,
-> left a TODO placeholder, imported from a private module, and skipped
-> the test file. Watch what happens when they ask Cursor for help —
-> the rules I configured catch all four issues and explain why."
+> left a TODO placeholder, imported from a private module, used the wrong
+> docstring style, and skipped the test file. Watch what happens when they
+> ask Cursor for help — the rules I configured catch all five issues and
+> explain why."
 
 ### In Terminal
 
@@ -84,13 +90,15 @@ in real time — first by Cursor's rules, then by the CLI.
 ob check examples/bad-first-contrib
 ```
 
-5. Rich-formatted output shows the same 4 violations with rule IDs
-6. Point at the output: "Same rules, no Cursor required. This is what
-   CI sees."
+5. Rich-formatted output shows the same 5 violations with the same rule IDs
+   (SK-D-001, SK-F-001, SK-I-001, SK-T-002, SK-DOC-001)
+6. Point at the output: "Same rules, same IDs, no Cursor required. This is
+   what CI sees."
 
 **Fallback:** If Cursor rules don't activate cleanly, skip straight to the
 terminal `ob check`. The CLI output is deterministic and will always work.
-The rule moment can be re-attempted during the guardrails section.
+The rule moment can be re-attempted during the guardrails section. Full
+fallback narration is in `docs/cursor-rule-verification.md`.
 
 **Key line:**
 

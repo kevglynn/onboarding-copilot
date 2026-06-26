@@ -46,12 +46,20 @@ def check_workspace(workspace: Path, profile: LibraryProfile) -> CheckResult:
 
     _check_missing_tests(source_files, test_files, workspace, profile, result)
     for src in source_files:
-        _check_todo_only(src, result)
-        _check_forbidden_imports(src, profile, result)
-        _check_deprecated_apis(src, profile, result)
-        _check_docstring_style(src, profile, result)
+        _check_todo_only(src, workspace, result)
+        _check_forbidden_imports(src, workspace, profile, result)
+        _check_deprecated_apis(src, workspace, profile, result)
+        _check_docstring_style(src, workspace, profile, result)
 
     return result
+
+
+def _rel(src: Path, workspace: Path) -> str:
+    """Path relative to the workspace for clean, consistent display."""
+    try:
+        return str(src.relative_to(workspace))
+    except ValueError:
+        return str(src)
 
 
 def _check_missing_tests(
@@ -81,7 +89,7 @@ def _check_missing_tests(
                 )
 
 
-def _check_todo_only(src: Path, result: CheckResult) -> None:
+def _check_todo_only(src: Path, workspace: Path, result: CheckResult) -> None:
     """Check for TODO-only implementations (no real logic)."""
     content = src.read_text()
     if src.name == "__init__.py":
@@ -124,14 +132,14 @@ def _check_todo_only(src: Path, result: CheckResult) -> None:
                             f"Function '{node.name}' has TODO-only "
                             f"implementation (no real logic)"
                         ),
-                        file=str(src),
+                        file=_rel(src, workspace),
                         line=node.lineno,
                     )
                 )
 
 
 def _check_forbidden_imports(
-    src: Path, profile: LibraryProfile, result: CheckResult
+    src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
 ) -> None:
     """Check for imports from forbidden/private modules."""
     content = src.read_text()
@@ -149,14 +157,14 @@ def _check_forbidden_imports(
                         rule_id="SK-F-001",
                         severity="error",
                         message=(f"Import from forbidden module: {node.module}"),
-                        file=str(src),
+                        file=_rel(src, workspace),
                         line=node.lineno,
                     )
                 )
 
 
 def _check_deprecated_apis(
-    src: Path, profile: LibraryProfile, result: CheckResult
+    src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
 ) -> None:
     """Check for usage of deprecated APIs."""
     content = src.read_text()
@@ -175,14 +183,14 @@ def _check_deprecated_apis(
                                 f"Deprecated API: {dep.symbol} — "
                                 f"use {dep.replacement} instead"
                             ),
-                            file=str(src),
+                            file=_rel(src, workspace),
                             line=i,
                         )
                     )
 
 
 def _check_docstring_style(
-    src: Path, profile: LibraryProfile, result: CheckResult
+    src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
 ) -> None:
     """Check docstring style matches profile convention."""
     if profile.docstring_convention.style != "numpydoc":
@@ -209,7 +217,7 @@ def _check_docstring_style(
                             f"docstring (Args:) — expected numpydoc "
                             f"(Parameters:)"
                         ),
-                        file=str(src),
+                        file=_rel(src, workspace),
                         line=node.lineno,
                     )
                 )
@@ -232,10 +240,10 @@ def render_check_result(result: CheckResult, console: Console) -> None:
         title=f"Convention Violations — {result.workspace}",
         show_lines=True,
     )
-    table.add_column("Rule", style="bold red", width=12)
-    table.add_column("Severity", width=10)
-    table.add_column("File", style="cyan", width=40)
-    table.add_column("Message", width=50)
+    table.add_column("Rule", style="bold red", width=11, no_wrap=True)
+    table.add_column("Severity", width=9, no_wrap=True)
+    table.add_column("File", style="cyan", overflow="fold")
+    table.add_column("Message", overflow="fold")
 
     for v in result.violations:
         severity_style = "red" if v.severity == "error" else "yellow"

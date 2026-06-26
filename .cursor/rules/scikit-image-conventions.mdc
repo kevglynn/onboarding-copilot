@@ -10,6 +10,25 @@ These conventions are loaded from `profiles/scikit-image.yaml` — the team-owne
 source of truth. When reviewing or generating code in this workspace, enforce
 these rules.
 
+## When asked to review a file
+
+Check the file against every rule below and report each violation using the
+SAME rule IDs the `ob check` CLI emits, so the editor and CI agree exactly:
+
+- **SK-D-001 (deprecated API):** flag any import or use of a deprecated symbol
+  listed under "Deprecated APIs" and name the replacement.
+- **SK-F-001 (forbidden import):** flag any import from `skimage/_shared/`,
+  `skimage/_vendored/`, or `skimage/_build/`.
+- **SK-I-001 (TODO-only implementation):** flag functions whose body is only
+  `pass`, a bare `...`, or a `# TODO` with no real logic.
+- **SK-T-002 (missing test):** flag a source module that has no matching
+  `tests/test_<name>.py`.
+- **SK-DOC-001 (docstring style):** flag Google-style `Args:`/`Returns:`
+  docstrings — this project requires numpydoc `Parameters`/`Returns`.
+
+Report each as `RULE-ID: <what> — <fix>`, then suggest the corrected code.
+For a deterministic second opinion, run `ob check <workspace>` in the terminal.
+
 ## Naming
 
 - Functions and variables: `snake_case`
