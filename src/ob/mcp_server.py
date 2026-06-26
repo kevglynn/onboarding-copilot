@@ -8,9 +8,11 @@ from pathlib import Path
 
 from fastmcp import FastMCP
 
+from ob.commands.check import check_workspace as _run_check
 from ob.profile import load_profile
 
-PROFILE_PATH = Path(__file__).parent.parent.parent / "profiles" / "scikit-image.yaml"
+REPO_ROOT = Path(__file__).parent.parent.parent
+PROFILE_PATH = REPO_ROOT / "profiles" / "scikit-image.yaml"
 
 mcp = FastMCP(
     "Engineering Onboarding Copilot",
@@ -25,6 +27,46 @@ mcp = FastMCP(
 
 def _get_profile():
     return load_profile(PROFILE_PATH)
+
+
+def check_workspace_report(path: str) -> dict:
+    """Run the deterministic convention checker and return a structured report.
+
+    Resolves a relative path against the repo root so the result is the same
+    regardless of the server's working directory.
+    """
+    ws = Path(path)
+    if not ws.is_absolute():
+        ws = REPO_ROOT / ws
+    result = _run_check(ws, _get_profile())
+    return {
+        "workspace": str(ws),
+        "passed": result.passed,
+        "violation_count": len(result.violations),
+        "violations": [
+            {
+                "rule_id": v.rule_id,
+                "severity": v.severity,
+                "file": v.file,
+                "line": v.line,
+                "message": v.message,
+            }
+            for v in result.violations
+        ],
+    }
+
+
+@mcp.tool
+def check_workspace(path: str) -> dict:
+    """Run the deterministic scikit-image convention checker on a workspace.
+
+    Mirrors the `ob check` CLI exactly (same SK-* rule IDs). Returns a
+    structured report — ``passed``, ``violation_count``, and a ``violations``
+    list (each with ``rule_id``, ``severity``, ``file``, ``line``, ``message``)
+    — so the Cursor agent can run enforcement and act on the results, not just
+    read conventions.
+    """
+    return check_workspace_report(path)
 
 
 @mcp.resource("conventions://approved-directories")

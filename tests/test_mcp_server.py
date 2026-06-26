@@ -95,3 +95,43 @@ class TestMCPServerRegistration:
         uris = {str(r.uri) for r in resources}
         assert "conventions://profile-summary" in uris
         assert "conventions://deprecated-apis" in uris
+
+
+class TestMCPCheckTool:
+    """The check_workspace MCP tool runs the deterministic checker."""
+
+    def test_tool_is_registered(self):
+        """The server exposes a check_workspace tool."""
+
+        async def _list():
+            async with Client(mcp) as client:
+                return await client.list_tools()
+
+        tools = asyncio.run(_list())
+        assert "check_workspace" in {t.name for t in tools}
+
+    def test_tool_flags_bad_contrib(self):
+        """Invoking the tool on bad-first-contrib returns violations."""
+
+        async def _call():
+            async with Client(mcp) as client:
+                return await client.call_tool(
+                    "check_workspace", {"path": "examples/bad-first-contrib"}
+                )
+
+        res = asyncio.run(_call())
+        assert res.data["passed"] is False
+        assert res.data["violation_count"] >= 4
+
+    def test_tool_passes_safe_contrib(self):
+        """Invoking the tool on safe-first-contrib returns no violations."""
+
+        async def _call():
+            async with Client(mcp) as client:
+                return await client.call_tool(
+                    "check_workspace", {"path": "examples/safe-first-contrib"}
+                )
+
+        res = asyncio.run(_call())
+        assert res.data["passed"] is True
+        assert res.data["violation_count"] == 0

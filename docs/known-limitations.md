@@ -69,12 +69,15 @@ The profile could drift from reality if conventions change.
 team's maintenance workflow. Could be automated with a CI job that
 diffs the profile against the library's current contribution guide.
 
-## 7. MCP server exposes resources only — no tool calls
+## 7. MCP tools — `check` is exposed; `scaffold`/`brief` are not yet
 
-The MCP server provides read-only convention data to Cursor's context
-engine. It does not expose tools (e.g., "run check on this file").
-This limits the agent's ability to take autonomous enforcement actions.
+The MCP server exposes its 7 conventions as resources **and** a
+`check_workspace` tool, so the Cursor agent can run the deterministic checker
+itself (the same `SK-*` rule IDs as the CLI) and act on the structured results
+— not just read conventions. `scaffold` and `brief` are not yet exposed as MCP
+tools, so the agent still shells out to the CLI for those.
 
-**In a real engagement:** Add MCP tool endpoints for `check` and
-`scaffold` so the Cursor agent can invoke them directly. This would
-enable fully autonomous convention enforcement during code generation.
+**In a real engagement:** Add MCP tool endpoints for `scaffold` and `brief`
+too, so the agent can create a convention-compliant workspace and generate
+role briefs autonomously — completing fully agent-driven enforcement end to
+end.
