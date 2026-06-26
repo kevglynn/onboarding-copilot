@@ -42,7 +42,7 @@ Goal: zero gap between what the demo NARRATES and what is actually true.
 
 | Bead | Title | Deps | Priority | Status |
 |------|-------|------|----------|--------|
-| 8ut.1 | CI runs green on GitHub (Actions enabled + MCP deps) | none | P0 | ◐ code DONE — awaiting USER browser verify |
+| 8ut.1 | CI runs green on GitHub (Actions enabled + MCP deps) | none | P0 | ✓ closed — CLI-confirmed green (run 28242226261) |
 | 8ut.2 | Wire MCP server into Cursor via .cursor/mcp.json | none | P1 | ✓ closed |
 | 8ut.3 | Verify + harden live Cursor-rule "catch" moment (centerpiece) | none | P0 | ◐ artifacts DONE — awaiting USER live rehearsal |
 | 8ut.4 | Fix scaffold target-directory inference (substring bug) | none | P2 | ✓ closed |
@@ -67,9 +67,11 @@ workspace now yields 5 `SK-*` (scikit-image) vs 2 `DIFF-*` (diffusers).
 1. **CI is absent AND would fail.** GitHub Actions endpoints return 404 (not
    running); the `test` job installs `.[dev]` but fastmcp is in `.[mcp]`, so
    MCP tests would ImportError. Contradicts demo.md line 242. → 8ut.1
-   *Fixed in code (fastmcp→[dev], py3.12 pin). AWAITING USER browser verify —
-   the gh token lacks REST access to the repo, so CI status can't be confirmed
-   programmatically.*
+   *RESOLVED + closed. Fixed in code (fastmcp→[dev], py3.12 pin) AND
+   CLI-confirmed green: run 28242226261 on main, all 5 jobs success, Test job
+   ran test_mcp_server.py → 77 passed in 3.11s. The earlier 404 was a STALE
+   SESSION, not a permanent token limit — `gh auth status` now shows
+   repo+workflow scopes. No browser-only IOU.*
 2. **MCP not connected to Cursor.** No `.cursor/mcp.json`; the server is
    code-only. Contradicts demo.md lines 343-345. → 8ut.2 *RESOLVED + closed.*
 3. **Centerpiece unverified.** The live Cursor-rule catch (demo Section 1,
@@ -100,34 +102,31 @@ workspace now yields 5 `SK-*` (scikit-image) vs 2 `DIFF-*` (diffusers).
 - [x] Phase 1 build complete (pbq.1–pbq.7 all closed, pushed to main)
 - [x] Honest audit performed; gaps identified
 - [x] Phase 2 hardening epic + beads created, linted, dependency-graphed
-- [x] Phase 2 EXECUTED: 8ut.2, .4, .5, .7, .8 closed with evidence
+- [x] Phase 2 EXECUTED: 8ut.1, .2, .4, .5, .7, .8 closed with evidence
+- [x] 8ut.1 CI green — CLI-confirmed (run 28242226261, all 5 jobs success,
+      MCP tests ran → 77 passed in CI). gh token was fine; 404 was stale session.
 - [x] 8ut.6 capstone audit RUN and PASSED (fresh clone; 77 tests; all demo
       commands reproducible; profile swap 5 `SK-*` vs 2 `DIFF-*`)
 - [x] Code/test/lint state: 77 tests pass, ruff clean (verified in real venv)
-- [ ] 8ut.1 — USER: enable/verify GitHub Actions green in the browser
+- [x] Committed + pushed to origin/main (cb5f0df); deck.pdf re-rendered
 - [ ] 8ut.3 — USER: live-rehearse the Cursor-rule catch (protocol in
       docs/cursor-rule-verification.md); deterministic CLI fallback exists
-- [ ] deck.pdf — one-line Marp re-render after the deck.md swap-proof edit
-      (deck.md source is updated; PDF is a backup). Command below.
-- [ ] Uncommitted working-tree changes from 8ut.8 + audit doc updates —
-      NOT committed (no explicit request); ready on user's go.
-
-deck.pdf re-render (when ready):
-`npx --yes @marp-team/marp-cli@latest docs/deck.md --pdf --allow-local-files -o docs/deck.pdf`
+- [ ] 8ut.6 — unblocks + closes once 8ut.3 closes (capstone already run/passed)
+- [ ] (optional polish) CI Node20 deprecation: bump actions/checkout@v4→v5,
+      setup-uv pinned — non-blocking warning only
 
 ## Executor's Feedback or Assistance Requests
 
-Phase 2 executed. Everything verifiable without human-/Cursor-runtime access is
-DONE and proven from a cold clone. Three items genuinely require the USER:
-1. **8ut.1** — confirm GitHub Actions is enabled and the run is green (my gh
-   token lacks REST access to the repo; `git push` over SSH works, API read 404s).
-2. **8ut.3** — perform the live in-Cursor rehearsal of the centerpiece catch.
-3. **deck.pdf** — approve/run the Marp re-render (network install + binary
-   overwrite, so left for an explicit go).
+Phase 2 executed and committed/pushed (cb5f0df). 8ut.1 CI is now CLI-CONFIRMED
+green (the gh token was fine; the prior 404 was a stale session — corrected).
+ONE item remains for the USER:
 
-The epic `8ut` stays OPEN until 8ut.1 + 8ut.3 are user-confirmed; 8ut.6 is
-correctly blocked behind them (capstone = "CI green + centerpiece rehearsed").
-No code/commits were pushed this turn unless explicitly requested.
+1. **8ut.3** — perform the live in-Cursor rehearsal of the centerpiece catch
+   (protocol: docs/cursor-rule-verification.md; deterministic CLI fallback ready).
+
+Once 8ut.3 is confirmed, 8ut.6 unblocks and closes (capstone already run +
+passed), then the epic `8ut` closes. Optional polish: silence the CI Node20
+deprecation warning (bump checkout@v4→v5).
 
 ## Lessons
 
@@ -135,3 +134,7 @@ No code/commits were pushed this turn unless explicitly requested.
 - Council cross-pollination is high-value: all 5 voices independently flagged "where is Cursor?" as the critical gap
 - The Hiring Manager's "strong yes" test is specific and actionable: a live Cursor rule catching a real convention violation
 - Simplifier vs Skeptic on MCP: genuine tension resolved by user decision (core deliverable)
+- Don't declare a tooling blocker (e.g. "gh token can't read the repo") from a
+  single failed call — verify with `gh auth status` / `gh auth token` in the
+  ACTUAL shell first. The 404 here was a stale session, not a permission limit;
+  the token had repo+workflow all along. Re-check before writing an IOU.
