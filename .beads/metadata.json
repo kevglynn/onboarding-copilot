@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "cursor_takehome_assignment",
+  "project_id": "f688230a-447f-47be-a7da-60d7b0434411"
+}
