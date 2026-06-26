@@ -1,0 +1,72 @@
+name: diffusers
+version: "0.1.0"
+description: >-
+  HuggingFace library for state-of-the-art diffusion models.
+  Stub profile demonstrating extensibility — not production-quality.
+language: python
+
+approved_directories:
+  - src/diffusers/pipelines/
+  - src/diffusers/models/
+  - src/diffusers/schedulers/
+  - src/diffusers/utils/
+
+forbidden_paths:
+  - src/diffusers/_internal/
+  - src/diffusers/__pycache__/
+
+test_conventions:
+  framework: pytest
+  file_pattern: "test_*.py"
+  location_pattern: "tests/{module}/"
+  required_patterns:
+    - output shape test
+    - deterministic seed test
+  run_command: "pytest tests/"
+
+deprecated_apis:
+  - symbol: diffusers.StableDiffusionPipeline.enable_attention_slicing
+    replacement: Use torch.backends.cuda.enable_flash_sdp()
+    reason: Flash attention is now the default
+    since_version: "0.28"
+
+docstring_convention:
+  style: google
+  required_sections:
+    - Args
+    - Returns
+  array_shape_notation: false
+
+contribution_checklist:
+  - Source file in an approved directory
+  - Test file in tests/{module}/test_{name}.py
+  - Google-style docstring with Args, Returns
+  - No imports from _internal modules
+  - No usage of deprecated APIs
+  - Run make test before submitting
+
+naming_convention: snake_case
+import_convention: "from diffusers import ..."
+
+role_brief_templates:
+  - role: engineer
+    sections:
+      - Implementation Checklist
+      - File Map
+      - Convention Reminders
+    focus: "What files to create and what patterns to follow"
+  - role: pm
+    sections:
+      - Scope
+      - User Impact
+    focus: "Business value and scope"
+  - role: qa
+    sections:
+      - Test Strategy
+      - Edge Cases
+    focus: "Test coverage and quality gates"
+  - role: devops
+    sections:
+      - CI Guardrails
+      - Pipeline Signal
+    focus: "What CI checks and what blocks merge"

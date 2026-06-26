@@ -1,0 +1,100 @@
+name: scikit-image
+version: "0.1.0"
+description: >-
+  Image processing library built on NumPy arrays, part of the
+  scientific Python (SciPy) ecosystem.
+language: python
+
+approved_directories:
+  - skimage/color/
+  - skimage/data/
+  - skimage/draw/
+  - skimage/exposure/
+  - skimage/feature/
+  - skimage/filters/
+  - skimage/graph/
+  - skimage/io/
+  - skimage/measure/
+  - skimage/metrics/
+  - skimage/morphology/
+  - skimage/registration/
+  - skimage/restoration/
+  - skimage/segmentation/
+  - skimage/transform/
+  - skimage/util/
+
+forbidden_paths:
+  - skimage/_shared/
+  - skimage/_vendored/
+  - skimage/_build/
+  - skimage/__pycache__/
+
+test_conventions:
+  framework: pytest
+  file_pattern: "test_*.py"
+  location_pattern: "{module}/tests/"
+  required_patterns:
+    - shape preservation test
+    - dtype roundtrip test
+  run_command: "spin test"
+
+deprecated_apis:
+  - symbol: skimage.filters.median
+    replacement: skimage.filters.rank.median
+    reason: Moved to rank submodule for consistency
+    since_version: "0.23"
+  - symbol: skimage.measure.marching_cubes_lewiner
+    replacement: skimage.measure.marching_cubes
+    reason: Consolidated into single marching_cubes function
+    since_version: "0.19"
+  - symbol: skimage.transform.estimate_transform
+    replacement: skimage.transform.AffineTransform.estimate
+    reason: Refactored to class method pattern
+    since_version: "0.22"
+
+docstring_convention:
+  style: numpydoc
+  required_sections:
+    - Parameters
+    - Returns
+    - Examples
+  array_shape_notation: true
+
+contribution_checklist:
+  - Source file in an approved directory
+  - Test file in {module}/tests/test_{name}.py
+  - NumPy-style docstring with Parameters, Returns, Examples
+  - Array parameters documented with shape notation (M, N)
+  - No imports from _shared or _vendored modules
+  - No usage of deprecated APIs
+  - Gallery example for new public functions
+  - Run spin build && spin test before submitting
+
+naming_convention: snake_case
+import_convention: "import skimage as ski"
+
+role_brief_templates:
+  - role: engineer
+    sections:
+      - Implementation Checklist
+      - File Map
+      - Convention Reminders
+    focus: "What files to create, where, and what patterns to follow"
+  - role: pm
+    sections:
+      - Scope
+      - User Impact
+      - What to Ask in Kickoff
+    focus: "Business value and scope boundaries"
+  - role: qa
+    sections:
+      - Test Strategy
+      - Edge Cases to Watch
+      - Test Names We Will Reject
+    focus: "Test coverage, edge cases, and quality gates"
+  - role: devops
+    sections:
+      - CI Guardrails
+      - Pipeline Signal
+      - Boundary Enforcement
+    focus: "What CI checks, what blocks merge, what boundaries are enforced"

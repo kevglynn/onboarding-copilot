@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "engineering-onboarding-copilot"
+version = "0.1.0"
+description = "Convention-aware SDLC workflow for onboarding engineers to open-source libraries"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "typer>=0.15",
+    "rich>=13.0",
+    "pydantic>=2.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.11",
+]
+mcp = [
+    "fastmcp>=2.0",
+]
+
+[project.scripts]
+ob = "ob.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ob"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+src = ["src", "tests"]
+extend-exclude = ["examples/"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["ob"]
