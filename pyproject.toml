@@ -16,12 +16,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+mcp = [
+    "fastmcp>=2.0",
+]
 dev = [
     "pytest>=8.0",
     "ruff>=0.11",
-]
-mcp = [
-    "fastmcp>=2.0",
+    "engineering-onboarding-copilot[mcp]",
 ]
 
 [project.scripts]
