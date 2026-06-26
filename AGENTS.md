@@ -1,5 +1,59 @@
 # Agent Instructions
 
+## Engineering Onboarding Copilot
+
+This workspace is the **Engineering Onboarding Copilot** — a system that
+guides new engineers through safe first contributions to open-source libraries.
+
+### Tools available to you
+
+**CLI (`ob`)** — three profile-driven commands:
+
+```bash
+ob check <workspace>                        # validate against conventions
+ob scaffold --task "description"            # create a convention-compliant workspace
+ob brief --role <engineer|pm|qa|devops> -w <path>  # role-specific brief
+```
+
+All commands accept `--profile <path>` to swap the library. Default:
+`profiles/scikit-image.yaml`.
+
+**MCP server** (Cursor only — registered in `.cursor/mcp.json`):
+
+- `check_workspace` tool — run the convention checker, get structured results
+- 7 `conventions://` resources — approved directories, forbidden paths,
+  deprecated APIs, docstring style, testing, checklist, profile summary
+
+**Profile YAML** (`profiles/`) — the single source of truth for conventions.
+The CLI reads it, the Cursor rules reference it, the MCP server exposes it.
+
+### When you should use these tools
+
+- **Reviewing code?** Run `ob check` first (or the MCP `check_workspace` tool).
+- **Creating files?** Use `ob scaffold` — it places files in the right
+  directory with correct test stubs and docstring templates.
+- **Asked about conventions?** Query the MCP resources or read the profile YAML
+  — do not guess.
+- **Generating a brief?** Use `ob brief --role <role>` — each role gets
+  different content (engineer: checklist, PM: scope, QA: test strategy,
+  DevOps: CI guardrails).
+
+### Key files
+
+| File | Purpose |
+|------|---------|
+| `profiles/scikit-image.yaml` | Primary convention profile |
+| `profiles/diffusers.yaml` | Stub profile proving extensibility |
+| `.cursor/mcp.json` | MCP server registration for Cursor |
+| `.cursor/rules/*.mdc` | Cursor rules (conventions, SDLC stages) |
+| `examples/bad-first-contrib/` | Seeded violations for demo/testing |
+| `examples/safe-first-contrib/` | Clean example that passes all checks |
+| `docs/demo.md` | 45-minute walkthrough script |
+
+---
+
+## Task Tracking (Beads)
+
 This project uses **bd** (beads) for issue tracking. Run `bd prime` for full workflow context.
 
 > **Architecture in one line:** Issues live in a local Dolt database

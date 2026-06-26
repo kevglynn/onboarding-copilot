@@ -50,6 +50,7 @@ Goal: zero gap between what the demo NARRATES and what is actually true.
 | 8ut.7 | Consolidated decision log (docs/decisions.md) | none | P2 | ✓ closed |
 | 8ut.6 | Capstone: cold-start clone + demo-to-reality audit | 8ut.1-.5, 8ut.7 | P1 | ◐ audit run + PASS — blocked by 8ut.1/.3 (by design) |
 | 8ut.8 | Profile-driven rule-ID namespace (rule_prefix) | discovered-from 8ut.6 | P2 | ✓ closed |
+| 8ut.9 | "Just works" agent discoverability | none | P1 | ✓ closed |
 
 All beads pass `bd lint`. No dependency cycles.
 
@@ -61,6 +62,13 @@ NEW during audit (8ut.8): the rule-ID namespace was hardcoded "SK-*" even under
 the diffusers profile, which silently undercut the "nothing is hardcoded to
 scikit-image" centerpiece. Fixed: `rule_prefix` is now profile-owned. Same
 workspace now yields 5 `SK-*` (scikit-image) vs 2 `DIFF-*` (diffusers).
+
+NEW (8ut.9): Every onboarding copilot rule was alwaysApply:false — an agent
+entering the workspace learned how to manage beads but had zero awareness of the
+copilot, MCP, or CLI. Fixed: alwaysApply:true spine rule (`onboarding-copilot.mdc`)
+connects agents to MCP tool+resources, CLI, profile YAML, and SDLC rules on first
+contact. SDLC globs widened (implementation was targeting a nonexistent skimage/ path).
+AGENTS.md now has a copilot section for non-Cursor agents. CI bumped checkout@v5.
 
 ## Honest Audit Findings (post-build) — resolution status
 
@@ -102,31 +110,32 @@ workspace now yields 5 `SK-*` (scikit-image) vs 2 `DIFF-*` (diffusers).
 - [x] Phase 1 build complete (pbq.1–pbq.7 all closed, pushed to main)
 - [x] Honest audit performed; gaps identified
 - [x] Phase 2 hardening epic + beads created, linted, dependency-graphed
-- [x] Phase 2 EXECUTED: 8ut.1, .2, .4, .5, .7, .8 closed with evidence
+- [x] Phase 2 EXECUTED: 8ut.1, .2, .4, .5, .7, .8, .9 closed with evidence
 - [x] 8ut.1 CI green — CLI-confirmed (run 28242226261, all 5 jobs success,
       MCP tests ran → 77 passed in CI). gh token was fine; 404 was stale session.
 - [x] 8ut.6 capstone audit RUN and PASSED (fresh clone; 77 tests; all demo
       commands reproducible; profile swap 5 `SK-*` vs 2 `DIFF-*`)
+- [x] 8ut.9 "Just works" — always-on spine rule, SDLC globs widened, AGENTS.md
+      copilot section, stale refs fixed, CI checkout@v5
 - [x] Code/test/lint state: 77 tests pass, ruff clean (verified in real venv)
-- [x] Committed + pushed to origin/main (cb5f0df); deck.pdf re-rendered
+- [x] Committed + pushed to origin/main (cb5f0df + 9eacae6); deck.pdf re-rendered
 - [ ] 8ut.3 — USER: live-rehearse the Cursor-rule catch (protocol in
       docs/cursor-rule-verification.md); deterministic CLI fallback exists
 - [ ] 8ut.6 — unblocks + closes once 8ut.3 closes (capstone already run/passed)
-- [ ] (optional polish) CI Node20 deprecation: bump actions/checkout@v4→v5,
-      setup-uv pinned — non-blocking warning only
+- [ ] Uncommitted: 8ut.9 changes (just-works rules, AGENTS.md, CI bump, stale refs)
 
 ## Executor's Feedback or Assistance Requests
 
-Phase 2 executed and committed/pushed (cb5f0df). 8ut.1 CI is now CLI-CONFIRMED
-green (the gh token was fine; the prior 404 was a stale session — corrected).
-ONE item remains for the USER:
+Phase 2 executed. 8ut.9 ("just works") addressed the biggest UX gap: agents
+entering the workspace now discover the copilot, MCP, and CLI automatically via
+an alwaysApply:true spine rule + AGENTS.md copilot section. CI bumped to
+checkout@v5 (Node24, no deprecation). ONE item remains for the USER:
 
 1. **8ut.3** — perform the live in-Cursor rehearsal of the centerpiece catch
    (protocol: docs/cursor-rule-verification.md; deterministic CLI fallback ready).
 
 Once 8ut.3 is confirmed, 8ut.6 unblocks and closes (capstone already run +
-passed), then the epic `8ut` closes. Optional polish: silence the CI Node20
-deprecation warning (bump checkout@v4→v5).
+passed), then the epic `8ut` closes.
 
 ## Lessons
 

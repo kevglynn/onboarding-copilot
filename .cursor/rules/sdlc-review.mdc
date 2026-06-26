@@ -1,6 +1,6 @@
 ---
 description: "SDLC review stage — active when generating briefs or reviewing contributions"
-globs: "**/BRIEFS.md"
+globs: "{**/BRIEFS.md,examples/**/*.py}"
 alwaysApply: false
 ---
 

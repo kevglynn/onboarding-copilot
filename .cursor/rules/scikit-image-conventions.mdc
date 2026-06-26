@@ -13,7 +13,10 @@ these rules.
 ## When asked to review a file
 
 Check the file against every rule below and report each violation using the
-SAME rule IDs the `ob check` CLI emits, so the editor and CI agree exactly:
+SAME rule IDs the `ob check` CLI emits, so the editor and CI agree exactly.
+
+Rule IDs use the active profile's `rule_prefix` (default `SK` for scikit-image,
+`DIFF` for diffusers, etc.). Under the default scikit-image profile:
 
 - **SK-D-001 (deprecated API):** flag any import or use of a deprecated symbol
   listed under "Deprecated APIs" and name the replacement.
@@ -27,7 +30,9 @@ SAME rule IDs the `ob check` CLI emits, so the editor and CI agree exactly:
   docstrings — this project requires numpydoc `Parameters`/`Returns`.
 
 Report each as `RULE-ID: <what> — <fix>`, then suggest the corrected code.
-For a deterministic second opinion, run `ob check <workspace>` in the terminal.
+
+For a deterministic second opinion, run `ob check <workspace>` in the terminal
+or use the MCP `check_workspace` tool for structured results.
 
 ## Naming
 

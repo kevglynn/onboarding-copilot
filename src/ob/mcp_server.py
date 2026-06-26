@@ -1,4 +1,4 @@
-"""FastMCP server exposing scikit-image conventions to Cursor's context engine.
+"""FastMCP server exposing library conventions to Cursor's context engine.
 
 Run with: fastmcp run src/ob/mcp_server.py
 Or:       python -m ob.mcp_server
@@ -17,10 +17,11 @@ PROFILE_PATH = REPO_ROOT / "profiles" / "scikit-image.yaml"
 mcp = FastMCP(
     "Engineering Onboarding Copilot",
     instructions=(
-        "Provides scikit-image contribution conventions, approved "
-        "directories, deprecated APIs, and testing requirements. "
-        "Use these resources when helping engineers write or review "
-        "code for scikit-image contributions."
+        "Provides library contribution conventions, approved directories, "
+        "deprecated APIs, and testing requirements loaded from the active "
+        "profile YAML. Use these resources when helping engineers write or "
+        "review code contributions. Use the check_workspace tool to validate "
+        "a workspace against the conventions."
     ),
 )
 
@@ -58,13 +59,13 @@ def check_workspace_report(path: str) -> dict:
 
 @mcp.tool
 def check_workspace(path: str) -> dict:
-    """Run the deterministic scikit-image convention checker on a workspace.
+    """Run the deterministic convention checker on a workspace.
 
-    Mirrors the `ob check` CLI exactly (same SK-* rule IDs). Returns a
-    structured report — ``passed``, ``violation_count``, and a ``violations``
-    list (each with ``rule_id``, ``severity``, ``file``, ``line``, ``message``)
-    — so the Cursor agent can run enforcement and act on the results, not just
-    read conventions.
+    Mirrors the `ob check` CLI exactly — rule IDs use the profile's
+    ``rule_prefix`` (e.g., ``SK-T-002`` for scikit-image, ``DIFF-T-002``
+    for diffusers). Returns a structured report with ``passed``,
+    ``violation_count``, and a ``violations`` list (each with ``rule_id``,
+    ``severity``, ``file``, ``line``, ``message``).
     """
     return check_workspace_report(path)
 

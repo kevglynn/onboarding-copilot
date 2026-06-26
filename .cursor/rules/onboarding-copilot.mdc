@@ -1,0 +1,83 @@
+---
+description: "Engineering Onboarding Copilot — always-on workspace awareness for agents"
+alwaysApply: true
+---
+
+# Engineering Onboarding Copilot
+
+This workspace IS the Engineering Onboarding Copilot — a system that guides
+new engineers through safe first contributions to open-source libraries.
+Everything below is available to you automatically.
+
+## Your tools
+
+### MCP server (registered in `.cursor/mcp.json`)
+
+The `onboarding-copilot` MCP server is running. Use it:
+
+- **`check_workspace` tool** — run the deterministic convention checker on any
+  workspace path. Returns structured violations (rule ID, severity, file, line,
+  message). Prefer this over shelling out to `ob check` when you need to act on
+  the results programmatically.
+- **Resources** — query these for convention details:
+  - `conventions://profile-summary` — what library, what rules
+  - `conventions://approved-directories` — where new code is allowed
+  - `conventions://forbidden-paths` — what to never import from
+  - `conventions://deprecated-apis` — what's deprecated and what replaces it
+  - `conventions://docstring-style` — docstring format + template
+  - `conventions://testing` — test framework, patterns, naming
+  - `conventions://contribution-checklist` — the full checklist
+
+When someone asks about conventions, query the MCP resources first — they are
+generated from the profile YAML and always current.
+
+### CLI (`ob`)
+
+Three commands, all profile-driven:
+
+```
+ob check <workspace>                        # validate against conventions
+ob scaffold --task "description"            # create a convention-compliant workspace
+ob brief --role <engineer|pm|qa|devops> --workspace <path>  # role-specific brief
+```
+
+All three accept `--profile <path>` to swap the library profile. The default
+is `profiles/scikit-image.yaml`.
+
+### Profile YAML (`profiles/`)
+
+The single source of truth for conventions. The CLI reads it, these rules
+reference it, the MCP server exposes it. Swapping the YAML changes the
+conventions enforced across all three surfaces.
+
+Rule IDs are profile-owned via `rule_prefix` (e.g., `SK-T-002` for
+scikit-image, `DIFF-T-002` for diffusers).
+
+## Automatic behaviors
+
+1. **When reviewing or generating Python code** in this workspace, enforce the
+   conventions from the active profile. The `scikit-image-conventions` rule
+   has the specifics; if in doubt, run the MCP `check_workspace` tool.
+
+2. **When asked to help with a contribution**, use `ob scaffold` to create the
+   workspace, not manual file creation. This ensures correct directory placement,
+   test stubs, and checklist.
+
+3. **When asked to review a contribution**, run `ob check` (or the MCP tool)
+   first, then generate role briefs with `ob brief`.
+
+4. **When asked about conventions or "how do I contribute"**, query the MCP
+   resources rather than guessing. They reflect the actual profile.
+
+5. **Before suggesting code changes**, check `conventions://forbidden-paths`
+   and `conventions://deprecated-apis` to avoid violations.
+
+## SDLC-stage rules
+
+More detailed guidance loads when you touch specific file types:
+
+- `scikit-image-conventions` — full convention reference (Python files)
+- `sdlc-planning` — contribution planning workflow (PLAN.md)
+- `sdlc-implementation` — coding patterns (skimage/ source files)
+- `sdlc-testing` — test requirements and patterns (test files)
+- `sdlc-review` — review workflow and brief generation (BRIEFS.md)

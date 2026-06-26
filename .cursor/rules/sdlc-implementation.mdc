@@ -1,6 +1,6 @@
 ---
-description: "SDLC implementation stage — active when editing source files in skimage/"
-globs: "**/skimage/**/*.py"
+description: "SDLC implementation stage — active when editing Python source files"
+globs: "**/*.py"
 alwaysApply: false
 ---
 
