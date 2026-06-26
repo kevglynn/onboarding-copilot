@@ -132,6 +132,7 @@ to `$GITHUB_STEP_SUMMARY`.
 │   ├── demo.md                # 45-min walkthrough script
 │   ├── deck.md                # Marp slide deck (6 slides)
 │   ├── deck.pdf               # Pre-rendered PDF backup
+│   ├── decisions.md           # ADR-style decision log
 │   ├── cursor-rule-verification.md  # Centerpiece rehearsal protocol
 │   ├── known-limitations.md   # 7 honest limitations
 │   └── library-battle-cards.md
@@ -155,6 +156,13 @@ Key tradeoffs:
 5. No multi-file refactor support
 
 Each is a deliberate choice with a documented remediation path.
+
+## Decisions
+
+See [docs/decisions.md](docs/decisions.md) for the ADR-style log behind every
+architectural choice (deterministic CLI, MCP-as-core, `ob` naming,
+profile-driven design, scikit-image over OpenCV, demo-script-as-spec, and
+CI-delivered briefs) — each with context, rationale, and alternatives.
 
 ## Demo
 
