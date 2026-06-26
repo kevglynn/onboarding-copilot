@@ -4,6 +4,11 @@ import typer
 from rich.console import Console
 
 from ob import __version__
+from ob.commands.brief import VALID_ROLES, generate_brief, render_brief
+from ob.commands.check import check_workspace, render_check_result
+from ob.commands.scaffold import render_scaffold_result, scaffold_workspace
+from ob.guardrails import validate_workspace_path
+from ob.profile import load_profile
 
 app = typer.Typer(
     name="ob",
@@ -41,7 +46,7 @@ def scaffold(
         "-t",
         help="Description of the contribution task.",
     ),
-    profile: str = typer.Option(
+    profile_path: str = typer.Option(
         "profiles/scikit-image.yaml",
         "--profile",
         "-p",
@@ -49,9 +54,11 @@ def scaffold(
     ),
 ):
     """Create a new contribution workspace with starter files."""
-    console.print(f"[bold]Scaffolding workspace for:[/bold] {task}")
-    console.print(f"[dim]Profile: {profile}[/dim]")
-    console.print("[yellow]Not yet implemented — see bead pbq.3[/yellow]")
+    profile = load_profile(profile_path)
+    workspace = scaffold_workspace(task, profile)
+    render_scaffold_result(workspace, task, console)
+    if workspace is None:
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -60,7 +67,7 @@ def check(
         ...,
         help="Path to the workspace to check.",
     ),
-    profile: str = typer.Option(
+    profile_path: str = typer.Option(
         "profiles/scikit-image.yaml",
         "--profile",
         "-p",
@@ -68,9 +75,12 @@ def check(
     ),
 ):
     """Validate a workspace against the library profile conventions."""
-    console.print(f"[bold]Checking workspace:[/bold] {workspace}")
-    console.print(f"[dim]Profile: {profile}[/dim]")
-    console.print("[yellow]Not yet implemented — see bead pbq.3[/yellow]")
+    ws = validate_workspace_path(workspace)
+    profile = load_profile(profile_path)
+    result = check_workspace(ws, profile)
+    render_check_result(result, console)
+    if not result.passed:
+        raise typer.Exit(code=1)
 
 
 @app.command()
@@ -87,7 +97,7 @@ def brief(
         "-w",
         help="Path to the workspace.",
     ),
-    profile: str = typer.Option(
+    profile_path: str = typer.Option(
         "profiles/scikit-image.yaml",
         "--profile",
         "-p",
@@ -101,6 +111,14 @@ def brief(
     ),
 ):
     """Generate a role-specific brief for the contribution."""
-    console.print(f"[bold]Generating {role} brief[/bold]")
-    console.print(f"[dim]Workspace: {workspace} | Profile: {profile}[/dim]")
-    console.print("[yellow]Not yet implemented — see bead pbq.3[/yellow]")
+    if role not in VALID_ROLES:
+        console.print(
+            f"[bold red]Unknown role:[/bold red] {role}\n"
+            f"Valid roles: {', '.join(sorted(VALID_ROLES))}"
+        )
+        raise typer.Exit(code=1)
+
+    ws = validate_workspace_path(workspace)
+    profile = load_profile(profile_path)
+    content = generate_brief(role, ws, profile)
+    render_brief(content, role, console, output_format=format)
