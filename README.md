@@ -84,6 +84,29 @@ FastMCP server exposing 7 convention resources to Cursor's context engine.
 Cursor's agent can reference approved directories, deprecated APIs,
 docstring templates, and more — all sourced from the profile YAML.
 
+**How Cursor loads it:** `.cursor/mcp.json` registers the server as a stdio
+MCP server, launched with the project's virtualenv interpreter:
+
+```json
+{
+  "mcpServers": {
+    "onboarding-copilot": {
+      "type": "stdio",
+      "command": "${workspaceFolder}/.venv/bin/python",
+      "args": ["-m", "ob.mcp_server"]
+    }
+  }
+}
+```
+
+Run the documented setup first (so `.venv` exists), then reload Cursor. The
+server appears under Settings → MCP. Verify the 7 resources are served:
+
+```bash
+# Exercises the wired server end-to-end (lists resources over MCP):
+pytest tests/test_mcp_server.py::TestMCPServerRegistration -q
+```
+
 ### CI (`.github/workflows/ci.yml`)
 Runs ruff, pytest, `ob check` on both examples, and generates role briefs
 to `$GITHUB_STEP_SUMMARY`.
@@ -104,14 +127,17 @@ to `$GITHUB_STEP_SUMMARY`.
 ├── examples/
 │   ├── bad-first-contrib/     # Seeded violations (demo)
 │   └── safe-first-contrib/    # Clean example (demo)
-├── tests/                     # 61 tests
+├── tests/                     # 62 tests
 ├── docs/
 │   ├── demo.md                # 45-min walkthrough script
 │   ├── deck.md                # Marp slide deck (6 slides)
 │   ├── deck.pdf               # Pre-rendered PDF backup
+│   ├── cursor-rule-verification.md  # Centerpiece rehearsal protocol
 │   ├── known-limitations.md   # 7 honest limitations
 │   └── library-battle-cards.md
-├── .cursor/rules/             # SDLC-stage Cursor rules
+├── .cursor/
+│   ├── rules/                 # SDLC-stage Cursor rules
+│   └── mcp.json               # Registers the MCP server with Cursor
 ├── .github/workflows/ci.yml   # CI pipeline
 ├── demo.sh                    # Choreographed demo launcher
 └── pyproject.toml             # Project config

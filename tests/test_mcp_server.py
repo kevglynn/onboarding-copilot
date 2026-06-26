@@ -1,5 +1,9 @@
 """Tests for the MCP server resource endpoints."""
 
+import asyncio
+
+from fastmcp import Client
+
 from ob.mcp_server import (
     get_approved_directories,
     get_contribution_checklist,
@@ -8,6 +12,7 @@ from ob.mcp_server import (
     get_forbidden_paths,
     get_profile_summary,
     get_testing_conventions,
+    mcp,
 )
 
 
@@ -73,3 +78,20 @@ class TestMCPResourceConsistency:
         """MCP lists all approved directories from profile."""
         result = get_approved_directories()
         assert result.count("skimage/") >= 15
+
+
+class TestMCPServerRegistration:
+    """The server itself registers and serves its resources over MCP."""
+
+    def test_server_registers_all_resources(self):
+        """The wired server enumerates all 7 convention resources."""
+
+        async def _list():
+            async with Client(mcp) as client:
+                return await client.list_resources()
+
+        resources = asyncio.run(_list())
+        assert len(resources) >= 7
+        uris = {str(r.uri) for r in resources}
+        assert "conventions://profile-summary" in uris
+        assert "conventions://deprecated-apis" in uris

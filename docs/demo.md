@@ -14,11 +14,15 @@ pytest --tb=short -q                 # all green
 ruff check .                         # clean
 ls examples/bad-first-contrib/       # seeded violations present
 ls examples/safe-first-contrib/      # clean example present
+pytest tests/test_mcp_server.py::TestMCPServerRegistration -q   # MCP serves 7 resources
 ```
 
 - [ ] Cursor open with repo loaded, rules active
+- [ ] Cursor → Settings → MCP shows `onboarding-copilot` connected (green dot,
+      7 resources). If not, reload Cursor after running setup (so `.venv` exists).
 - [ ] Terminal split visible alongside Cursor
 - [ ] `docs/deck.md` rendered (Marp) or `docs/deck.pdf` open as backup
+- [ ] `docs/cursor-rule-verification.md` rehearsed (the live-catch beat)
 - [ ] Font size ≥ 16pt in terminal, readable at projector distance
 - [ ] Rich output colors verified on projector (dark background)
 
@@ -353,6 +357,13 @@ Pause. Then:
 > agent can reference them. And the CLI is callable as a tool from
 > Cursor's agent for deterministic operations. The artifact isn't just
 > built with Cursor — it's built for Cursor."
+
+> **Show it (MCP):** Cursor → Settings → MCP → `onboarding-copilot`
+> (connected, 7 resources). Open `conventions://deprecated-apis` — it lists
+> `skimage.filters.median → skimage.filters.rank.median`, served live from
+> `profiles/scikit-image.yaml`. Then: "Edit that one YAML file and the rules,
+> the CLI, and this MCP resource all update together." The `check_workspace`
+> MCP tool lets the agent run the deterministic checker itself.
 
 ### "Where does it break?"
 
