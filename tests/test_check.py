@@ -51,6 +51,35 @@ class TestCheckBadContrib:
         assert "SK-DOC-001" in rule_ids
 
 
+class TestRulePrefixIsProfileDriven:
+    """Rule-ID namespace comes from the profile, not hardcoded to scikit-image.
+
+    This is what makes the profile swap honest: swapping the YAML renames the
+    whole rule catalog (SK-* -> DIFF-*), proving the engine is library-agnostic.
+    """
+
+    def test_diffusers_profile_renames_rule_namespace(
+        self, examples_dir, diffusers_profile_path
+    ):
+        """Same workspace, diffusers profile -> DIFF-* rule IDs, never SK-*."""
+        profile = load_profile(diffusers_profile_path)
+        result = check_workspace(examples_dir / "bad-first-contrib", profile)
+        rule_ids = [v.rule_id for v in result.violations]
+
+        assert rule_ids, "expected violations under the diffusers profile"
+        assert all(rid.startswith("DIFF-") for rid in rule_ids), rule_ids
+        assert not any(rid.startswith("SK-") for rid in rule_ids), rule_ids
+        # Profile-independent checks (missing test, TODO-only) still fire.
+        assert "DIFF-T-002" in rule_ids
+        assert "DIFF-I-001" in rule_ids
+
+    def test_default_prefix_is_sk(self, examples_dir, profile):
+        """The scikit-image profile keeps the SK-* namespace."""
+        result = check_workspace(examples_dir / "bad-first-contrib", profile)
+        rule_ids = [v.rule_id for v in result.violations]
+        assert all(rid.startswith("SK-") for rid in rule_ids), rule_ids
+
+
 class TestCheckGoodContrib:
     """Check command passes clean code."""
 

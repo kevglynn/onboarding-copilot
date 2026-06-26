@@ -84,6 +84,10 @@ PM, QA, and DevOps lack visibility.
 - Same CLI, same rules, same MCP
 - One file change, three surfaces updated
 
+Same workspace, swap the profile:
+`bad-first-contrib` → **5 `SK-*`** violations (scikit-image)
+→ **2 `DIFF-*`** violations (diffusers). Even the rule catalog renames itself.
+
 *A new customer library = a new YAML, not a new tool.*
 
 ---

@@ -73,6 +73,10 @@ contribution_checklist:
 naming_convention: snake_case
 import_convention: "import skimage as ski"
 
+# Namespace for violation rule IDs (e.g. SK-T-002). Profile-owned, so a
+# different library's profile renames the whole rule catalog.
+rule_prefix: "SK"
+
 # Fallback when no keyword or module name matches the task.
 default_directory: "skimage/filters/"
 

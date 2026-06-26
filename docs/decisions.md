@@ -94,7 +94,11 @@ the MCP server exposes it. Adding a library means adding a profile, not a tool.
 **Rationale.** This is the architectural ace: "swap the YAML, keep the engine."
 It keeps conventions team-owned (checked in, code-reviewed) and demonstrates
 extensibility concretely — a `diffusers.yaml` stub proves a second library
-drops in. One file change updates three surfaces.
+drops in. One file change updates three surfaces. The proof is observable:
+the same `bad-first-contrib` workspace yields 5 `SK-*` violations under
+scikit-image and 2 `DIFF-*` violations under diffusers — even the rule-ID
+namespace (`rule_prefix`) is profile-owned, so nothing is hardcoded to one
+library.
 
 **Alternatives considered.** (a) Hard-coded conventions in Python — rejected;
 not team-ownable, not extensible. (b) A database/service of conventions —

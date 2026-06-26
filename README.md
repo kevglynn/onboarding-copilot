@@ -127,7 +127,7 @@ to `$GITHUB_STEP_SUMMARY`.
 ├── examples/
 │   ├── bad-first-contrib/     # Seeded violations (demo)
 │   └── safe-first-contrib/    # Clean example (demo)
-├── tests/                     # 62 tests
+├── tests/                     # 77 tests
 ├── docs/
 │   ├── demo.md                # 45-min walkthrough script
 │   ├── deck.md                # Marp slide deck (6 slides)

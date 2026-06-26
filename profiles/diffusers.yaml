@@ -48,6 +48,10 @@ contribution_checklist:
 naming_convention: snake_case
 import_convention: "from diffusers import ..."
 
+# Swap the profile, swap the rule namespace: violations here read DIFF-*,
+# not SK-*, proving the engine is not hardcoded to scikit-image.
+rule_prefix: "DIFF"
+
 role_brief_templates:
   - role: engineer
     sections:

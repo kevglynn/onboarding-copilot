@@ -291,12 +291,23 @@ For each: "Here's how I'd address it in a real engagement."
 > "The assignment says this artifact is the foundation for the final
 > challenge — extending it to a customer scenario."
 
-Show the diffusers stub profile reference. Narrate:
+Show the swap live — same workspace, two profiles:
 
-> "Swap the YAML, keep the engine. A new customer library means a new
-> profile, not a new tool. The Cursor rules reference the profile, the
-> CLI reads the profile, the MCP server exposes the profile. One file
-> change, three surfaces updated."
+```bash
+ob check examples/bad-first-contrib                          # 5 SK-* violations
+ob check --profile profiles/diffusers.yaml examples/bad-first-contrib  # 2 DIFF-* violations
+```
+
+Narrate:
+
+> "Same code, different profile. Under scikit-image it's five violations
+> in the `SK-` namespace. Swap to the diffusers profile and it's two
+> violations in the `DIFF-` namespace — the forbidden paths, deprecated
+> APIs, and docstring style are all profile-owned, and even the rule
+> catalog renames itself. Nothing is hardcoded to scikit-image. A new
+> customer library means a new YAML, not a new tool. The Cursor rules
+> reference the profile, the CLI reads the profile, the MCP server
+> exposes the profile. One file change, three surfaces updated."
 
 ### Slide 6 — Close
 

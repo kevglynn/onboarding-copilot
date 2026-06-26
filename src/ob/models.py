@@ -94,6 +94,15 @@ class LibraryProfile(BaseModel):
         description="Canonical import pattern (e.g., import skimage as ski)",
     )
 
+    rule_prefix: str = Field(
+        default="SK",
+        description=(
+            "Namespace prefix for violation rule IDs (e.g., 'SK' -> SK-T-002). "
+            "Profile-owned so swapping the YAML renames the rule catalog, "
+            "proving the engine is not hardcoded to one library."
+        ),
+    )
+
     default_directory: str = Field(
         default="",
         description="Fallback approved directory when no keyword/module matches",

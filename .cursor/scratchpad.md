@@ -36,41 +36,53 @@ Result: complete skeleton, 61 local tests passing, ruff clean. BUT an honest
 audit found the artifact is NOT yet a "knockout" — three claims are not wired
 up and one correctness bug exists. See Honest Audit Findings below.
 
-### Phase 2 — Interview-hardening (PLANNED): Epic `cursor-takehome-assignment-8ut`
+### Phase 2 — Interview-hardening (EXECUTED): Epic `cursor-takehome-assignment-8ut`
 
 Goal: zero gap between what the demo NARRATES and what is actually true.
 
-| Bead | Title | Deps | Priority |
-|------|-------|------|----------|
-| 8ut.1 | CI runs green on GitHub (Actions enabled + MCP deps) | none | P0 |
-| 8ut.2 | Wire MCP server into Cursor via .cursor/mcp.json | none | P1 |
-| 8ut.3 | Verify + harden live Cursor-rule "catch" moment (centerpiece) | none | P0 |
-| 8ut.4 | Fix scaffold target-directory inference (substring bug) | none | P2 |
-| 8ut.5 | Elevation: expose `ob check` as an MCP tool | 8ut.2 | P2 |
-| 8ut.7 | Consolidated decision log (docs/decisions.md) | none | P2 |
-| 8ut.6 | Capstone: cold-start clone + demo-to-reality audit | 8ut.1-.5, 8ut.7 | P1 |
+| Bead | Title | Deps | Priority | Status |
+|------|-------|------|----------|--------|
+| 8ut.1 | CI runs green on GitHub (Actions enabled + MCP deps) | none | P0 | ◐ code DONE — awaiting USER browser verify |
+| 8ut.2 | Wire MCP server into Cursor via .cursor/mcp.json | none | P1 | ✓ closed |
+| 8ut.3 | Verify + harden live Cursor-rule "catch" moment (centerpiece) | none | P0 | ◐ artifacts DONE — awaiting USER live rehearsal |
+| 8ut.4 | Fix scaffold target-directory inference (substring bug) | none | P2 | ✓ closed |
+| 8ut.5 | Elevation: expose `ob check` as an MCP tool | 8ut.2 | P2 | ✓ closed |
+| 8ut.7 | Consolidated decision log (docs/decisions.md) | none | P2 | ✓ closed |
+| 8ut.6 | Capstone: cold-start clone + demo-to-reality audit | 8ut.1-.5, 8ut.7 | P1 | ◐ audit run + PASS — blocked by 8ut.1/.3 (by design) |
+| 8ut.8 | Profile-driven rule-ID namespace (rule_prefix) | discovered-from 8ut.6 | P2 | ✓ closed |
 
-All 8 beads (epic + 7) pass `bd lint`. No dependency cycles.
+All beads pass `bd lint`. No dependency cycles.
 
-Locked refinements: (a) move fastmcp [mcp]→[dev] so one install group covers
-dev/CI/fresh-clone; (b) enabling GitHub Actions may need a one-time repo-settings
-toggle by the owner; (c) 8ut.6 demonstrates the profile swap via
-`ob check --profile diffusers.yaml`.
+Refinements applied: (a) fastmcp moved [mcp]→[dev] so one install group covers
+dev/CI/fresh-clone; (b) CI pins `uv venv --python 3.12`; (c) 8ut.6 demonstrates
+the profile swap via `ob check --profile profiles/diffusers.yaml`.
 
-Execution order: 8ut.1 + 8ut.3 (P0) → 8ut.2 → 8ut.5 → 8ut.4 → 8ut.7 → 8ut.6.
+NEW during audit (8ut.8): the rule-ID namespace was hardcoded "SK-*" even under
+the diffusers profile, which silently undercut the "nothing is hardcoded to
+scikit-image" centerpiece. Fixed: `rule_prefix` is now profile-owned. Same
+workspace now yields 5 `SK-*` (scikit-image) vs 2 `DIFF-*` (diffusers).
 
-## Honest Audit Findings (post-build)
+## Honest Audit Findings (post-build) — resolution status
 
 1. **CI is absent AND would fail.** GitHub Actions endpoints return 404 (not
    running); the `test` job installs `.[dev]` but fastmcp is in `.[mcp]`, so
    MCP tests would ImportError. Contradicts demo.md line 242. → 8ut.1
+   *Fixed in code (fastmcp→[dev], py3.12 pin). AWAITING USER browser verify —
+   the gh token lacks REST access to the repo, so CI status can't be confirmed
+   programmatically.*
 2. **MCP not connected to Cursor.** No `.cursor/mcp.json`; the server is
-   code-only. Contradicts demo.md lines 343-345. → 8ut.2
+   code-only. Contradicts demo.md lines 343-345. → 8ut.2 *RESOLVED + closed.*
 3. **Centerpiece unverified.** The live Cursor-rule catch (demo Section 1,
    the "strong yes" moment) has never been confirmed in the Cursor runtime.
-   → 8ut.3
+   → 8ut.3 *Artifacts + rehearsal protocol + deterministic fallback DONE.
+   AWAITING USER live rehearsal inside Cursor.*
 4. **Scaffold inference bug.** "histogram equalization" routes to `skimage/io/`
-   because "io" is a substring of "equalizatION". → 8ut.4
+   because "io" is a substring of "equalizatION". → 8ut.4 *RESOLVED + closed
+   (word-boundary + keyword-map routing; regression test added).*
+5. **(found during 8ut.6 audit) Rule-ID prefix hardcoded.** Swapping to the
+   diffusers profile still printed `SK-*` IDs, undercutting the centerpiece
+   swap claim. → 8ut.8 *RESOLVED + closed (`rule_prefix` is profile-owned;
+   5 `SK-*` vs 2 `DIFF-*` on the same workspace).*
 
 ## Alignment Decisions (locked)
 
@@ -87,17 +99,35 @@ Execution order: 8ut.1 + 8ut.3 (P0) → 8ut.2 → 8ut.5 → 8ut.4 → 8ut.7 → 
 
 - [x] Phase 1 build complete (pbq.1–pbq.7 all closed, pushed to main)
 - [x] Honest audit performed; gaps identified
-- [x] Phase 2 hardening epic + 6 beads created, linted, dependency-graphed
-- [ ] Phase 2 execution NOT started — awaiting go / mode confirmation
-- [ ] Next claimable: 8ut.1 (CI), 8ut.3 (centerpiece) — both P0
+- [x] Phase 2 hardening epic + beads created, linted, dependency-graphed
+- [x] Phase 2 EXECUTED: 8ut.2, .4, .5, .7, .8 closed with evidence
+- [x] 8ut.6 capstone audit RUN and PASSED (fresh clone; 77 tests; all demo
+      commands reproducible; profile swap 5 `SK-*` vs 2 `DIFF-*`)
+- [x] Code/test/lint state: 77 tests pass, ruff clean (verified in real venv)
+- [ ] 8ut.1 — USER: enable/verify GitHub Actions green in the browser
+- [ ] 8ut.3 — USER: live-rehearse the Cursor-rule catch (protocol in
+      docs/cursor-rule-verification.md); deterministic CLI fallback exists
+- [ ] deck.pdf — one-line Marp re-render after the deck.md swap-proof edit
+      (deck.md source is updated; PDF is a backup). Command below.
+- [ ] Uncommitted working-tree changes from 8ut.8 + audit doc updates —
+      NOT committed (no explicit request); ready on user's go.
+
+deck.pdf re-render (when ready):
+`npx --yes @marp-team/marp-cli@latest docs/deck.md --pdf --allow-local-files -o docs/deck.pdf`
 
 ## Executor's Feedback or Assistance Requests
 
-Phase 2 planned and scoped. Suggested execution order (respecting deps and
-priority): 8ut.1 (CI honesty) and 8ut.3 (centerpiece) first as P0, then 8ut.2
-(MCP wiring) → 8ut.5 (MCP tool), 8ut.4 (scaffold), then 8ut.6 (capstone audit)
-last. 8ut.3 has a manual in-Cursor confirmation step only the user can perform.
-Awaiting confirmation to proceed in Executor mode.
+Phase 2 executed. Everything verifiable without human-/Cursor-runtime access is
+DONE and proven from a cold clone. Three items genuinely require the USER:
+1. **8ut.1** — confirm GitHub Actions is enabled and the run is green (my gh
+   token lacks REST access to the repo; `git push` over SSH works, API read 404s).
+2. **8ut.3** — perform the live in-Cursor rehearsal of the centerpiece catch.
+3. **deck.pdf** — approve/run the Marp re-render (network install + binary
+   overwrite, so left for an explicit go).
+
+The epic `8ut` stays OPEN until 8ut.1 + 8ut.3 are user-confirmed; 8ut.6 is
+correctly blocked behind them (capstone = "CI green + centerpiece rehearsed").
+No code/commits were pushed this turn unless explicitly requested.
 
 ## Lessons
 

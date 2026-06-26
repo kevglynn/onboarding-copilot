@@ -46,7 +46,7 @@ def check_workspace(workspace: Path, profile: LibraryProfile) -> CheckResult:
 
     _check_missing_tests(source_files, test_files, workspace, profile, result)
     for src in source_files:
-        _check_todo_only(src, workspace, result)
+        _check_todo_only(src, workspace, profile, result)
         _check_forbidden_imports(src, workspace, profile, result)
         _check_deprecated_apis(src, workspace, profile, result)
         _check_docstring_style(src, workspace, profile, result)
@@ -81,7 +81,7 @@ def _check_missing_tests(
             if not has_test:
                 result.violations.append(
                     Violation(
-                        rule_id="SK-T-002",
+                        rule_id=f"{profile.rule_prefix}-T-002",
                         severity="error",
                         message=f"Missing test file for {src.name}",
                         file=str(src.relative_to(workspace)),
@@ -89,7 +89,9 @@ def _check_missing_tests(
                 )
 
 
-def _check_todo_only(src: Path, workspace: Path, result: CheckResult) -> None:
+def _check_todo_only(
+    src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
+) -> None:
     """Check for TODO-only implementations (no real logic)."""
     content = src.read_text()
     if src.name == "__init__.py":
@@ -126,7 +128,7 @@ def _check_todo_only(src: Path, workspace: Path, result: CheckResult) -> None:
             if is_todo and "TODO" in content:
                 result.violations.append(
                     Violation(
-                        rule_id="SK-I-001",
+                        rule_id=f"{profile.rule_prefix}-I-001",
                         severity="error",
                         message=(
                             f"Function '{node.name}' has TODO-only "
@@ -154,7 +156,7 @@ def _check_forbidden_imports(
             if is_forbidden_path(module_path, profile):
                 result.violations.append(
                     Violation(
-                        rule_id="SK-F-001",
+                        rule_id=f"{profile.rule_prefix}-F-001",
                         severity="error",
                         message=(f"Import from forbidden module: {node.module}"),
                         file=_rel(src, workspace),
@@ -177,7 +179,7 @@ def _check_deprecated_apis(
                 if re.search(pattern, line):
                     result.violations.append(
                         Violation(
-                            rule_id="SK-D-001",
+                            rule_id=f"{profile.rule_prefix}-D-001",
                             severity="warning",
                             message=(
                                 f"Deprecated API: {dep.symbol} — "
@@ -210,7 +212,7 @@ def _check_docstring_style(
             if "Args:" in docstring or "Arguments:" in docstring:
                 result.violations.append(
                     Violation(
-                        rule_id="SK-DOC-001",
+                        rule_id=f"{profile.rule_prefix}-DOC-001",
                         severity="warning",
                         message=(
                             f"Function '{node.name}' uses Google-style "
