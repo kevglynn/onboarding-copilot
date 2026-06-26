@@ -93,3 +93,16 @@ class LibraryProfile(BaseModel):
         default="",
         description="Canonical import pattern (e.g., import skimage as ski)",
     )
+
+    default_directory: str = Field(
+        default="",
+        description="Fallback approved directory when no keyword/module matches",
+    )
+    directory_keywords: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description=(
+            "Map of module name -> task keywords that route a scaffold there. "
+            "Keywords match on a word boundary, so prefixes like 'equaliz' "
+            "match 'equalization' without false substring hits."
+        ),
+    )

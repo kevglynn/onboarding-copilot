@@ -3,6 +3,7 @@
 import pytest
 
 from ob.commands.scaffold import _infer_module_name, _slugify, scaffold_workspace
+from ob.guardrails import extract_target_directory
 from ob.profile import load_profile
 
 
@@ -84,6 +85,53 @@ class TestScaffoldGuardrails:
             base_dir=tmp_path,
         )
         assert ws is None
+
+
+class TestDirectoryInference:
+    """Task descriptions route to the correct approved directory."""
+
+    @pytest.mark.parametrize(
+        "task,expected",
+        [
+            ("add adaptive histogram equalization helper", "skimage/exposure/"),
+            ("edge detection filter", "skimage/filters/"),
+            ("image denoising", "skimage/restoration/"),
+            ("watershed segmentation", "skimage/segmentation/"),
+            ("morphological erosion operation", "skimage/morphology/"),
+            ("convert rgb to grayscale", "skimage/color/"),
+        ],
+    )
+    def test_keyword_routing(self, profile, task, expected):
+        """Keyword hints route tasks to the right module."""
+        assert extract_target_directory(task, profile) == expected
+
+    def test_io_not_matched_inside_equalization(self, profile):
+        """Regression: 'io' must not match as a substring of 'equalization'."""
+        result = extract_target_directory(
+            "add adaptive histogram equalization helper", profile
+        )
+        assert result == "skimage/exposure/"
+        assert result != "skimage/io/"
+
+    def test_explicit_module_name_matches_as_whole_word(self, profile):
+        """A real module name as a whole word still routes correctly."""
+        assert extract_target_directory("add a new io reader", profile) == "skimage/io/"
+
+    def test_unmatched_task_returns_none(self, profile):
+        """No keyword/module match returns None (caller uses default)."""
+        assert extract_target_directory("a totally unrelated request", profile) is None
+
+    def test_scaffold_routes_equalization_to_exposure(self, tmp_path, profile):
+        """End-to-end: scaffold places equalization files under exposure, not io."""
+        ws = scaffold_workspace(
+            "add adaptive histogram equalization helper",
+            profile,
+            base_dir=tmp_path,
+        )
+        assert ws is not None
+        exposure_files = list((ws / "skimage" / "exposure").rglob("*.py"))
+        assert exposure_files, "expected source under skimage/exposure/"
+        assert not (ws / "skimage" / "io").exists()
 
 
 class TestSlugify:

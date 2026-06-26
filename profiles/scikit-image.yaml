@@ -73,6 +73,45 @@ contribution_checklist:
 naming_convention: snake_case
 import_convention: "import skimage as ski"
 
+# Fallback when no keyword or module name matches the task.
+default_directory: "skimage/filters/"
+
+# Routes a scaffold task to a module. Keywords match on a word boundary,
+# so prefixes (e.g. "equaliz") match "equalization"/"equalize" without the
+# false substring hits that plagued naive matching (e.g. "io" in
+# "equalizatION"). First module with a matching keyword wins.
+directory_keywords:
+  exposure:
+    [histogram, equaliz, contrast, gamma, intensity, exposure, sigmoid]
+  filters:
+    [filter, edge, threshold, gaussian, blur, sobel, sharpen, gabor, unsharp]
+  restoration:
+    [denois, deconvolv, restor, inpaint, wiener, richardson, rolling ball]
+  segmentation:
+    [segment, watershed, slic, felzenszwalb, chan vese, boundaries, random walker]
+  morphology:
+    [morpholog, erode, erosion, dilate, dilation, opening, closing, skeleton, tophat]
+  transform:
+    [transform, rotate, resize, rescale, warp, swirl, pyramid, radon, hough]
+  color:
+    [color, colour, rgb, grayscale, greyscale, hsv, colorspace]
+  measure:
+    [measure, regionprop, moments, perimeter, contour, marching cubes]
+  feature:
+    [feature, corner, blob, descriptor, canny, hog, daisy, local binary]
+  registration:
+    [registration, register, optical flow, phase cross]
+  metrics:
+    [metric, ssim, psnr, structural similarity, mean squared, hausdorff]
+  graph:
+    [pixel graph, rag, region adjacency]
+  draw:
+    [draw, polygon, ellipse, bezier, circle perimeter]
+  io:
+    [imread, imsave, imshow, image collection, read image, write image]
+  util:
+    [montage, view as blocks, view as windows, img as float, img as ubyte]
+
 role_brief_templates:
   - role: engineer
     sections:

@@ -46,7 +46,7 @@ def scaffold_workspace(
 
     target_dir = extract_target_directory(task, profile)
     if target_dir is None:
-        target_dir = (
+        target_dir = profile.default_directory or (
             profile.approved_directories[0] if profile.approved_directories else "src/"
         )
 

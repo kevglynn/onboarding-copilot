@@ -1,5 +1,6 @@
 """Path boundary enforcement for approved workspaces and directories."""
 
+import re
 from pathlib import Path
 
 from ob.models import LibraryProfile
@@ -32,15 +33,37 @@ def validate_workspace_path(workspace: str) -> Path:
     return ws
 
 
-def extract_target_directory(task: str, profile: LibraryProfile) -> str | None:
-    """Extract the target directory from a task description.
+def _module_to_dir(module: str, profile: LibraryProfile) -> str | None:
+    """Find the approved directory whose last path segment is `module`."""
+    for approved in profile.approved_directories:
+        if approved.rstrip("/").split("/")[-1] == module:
+            return approved
+    return None
 
-    Looks for directory-like patterns in the task string and checks
-    them against the profile's approved directories.
-    Returns the first matching approved directory, or None.
+
+def extract_target_directory(task: str, profile: LibraryProfile) -> str | None:
+    """Infer the target approved directory for a scaffold task.
+
+    Deterministic, first-match-wins:
+    1. Profile keyword hints (module -> keywords), matched on a word boundary
+       so prefixes like "equaliz" match "equalization" WITHOUT false substring
+       hits — e.g. "io" no longer matches inside "equalizatION".
+    2. An approved module name appearing as a whole word in the task.
+
+    Returns None if nothing matches; the caller supplies a default.
     """
+    task_lower = task.lower()
+
+    for module, keywords in profile.directory_keywords.items():
+        for keyword in keywords:
+            if re.search(r"\b" + re.escape(keyword.lower()), task_lower):
+                target = _module_to_dir(module, profile)
+                if target:
+                    return target
+
     for approved in profile.approved_directories:
         module = approved.rstrip("/").split("/")[-1]
-        if module.lower() in task.lower():
+        if re.search(r"\b" + re.escape(module.lower()) + r"\b", task_lower):
             return approved
+
     return None
