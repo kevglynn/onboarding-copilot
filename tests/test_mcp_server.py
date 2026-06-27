@@ -64,6 +64,29 @@ class TestMCPResources:
         assert "snake_case" in result
 
 
+class TestMCPProfileSelection:
+    """OB_PROFILE env var re-themes every MCP surface without a code edit."""
+
+    def test_env_profile_switches_resources(self, monkeypatch):
+        monkeypatch.setenv("OB_PROFILE", "profiles/diffusers.yaml")
+        summary = get_profile_summary()
+        assert "diffusers" in summary
+
+    def test_env_profile_switches_tool_namespace(self, monkeypatch):
+        monkeypatch.setenv("OB_PROFILE", "profiles/diffusers.yaml")
+
+        async def _call():
+            async with Client(mcp) as client:
+                return await client.call_tool(
+                    "check_workspace", {"path": "examples/bad-first-contrib"}
+                )
+
+        res = asyncio.run(_call())
+        ids = [v["rule_id"] for v in res.data["violations"]]
+        assert ids
+        assert all(rid.startswith("DIFF-") for rid in ids), ids
+
+
 class TestMCPResourceConsistency:
     """Cross-resource consistency checks."""
 
@@ -135,3 +158,16 @@ class TestMCPCheckTool:
         res = asyncio.run(_call())
         assert res.data["passed"] is True
         assert res.data["violation_count"] == 0
+
+    def test_tool_nonexistent_path_is_not_silent_pass(self):
+        """A non-existent path must not report passed=True (xm1.3)."""
+
+        async def _call():
+            async with Client(mcp) as client:
+                return await client.call_tool(
+                    "check_workspace", {"path": "examples/does-not-exist-xyz"}
+                )
+
+        res = asyncio.run(_call())
+        assert res.data["passed"] is False
+        assert res.data.get("error")

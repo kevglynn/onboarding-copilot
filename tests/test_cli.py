@@ -63,3 +63,58 @@ class TestCLIBasics:
             ["scaffold", "--task", "add helper to skimage/_vendored/"],
         )
         assert result.exit_code != 0
+
+
+class TestLintProfileCommand:
+    """The lint-profile command validates a profile and exits accordingly."""
+
+    def test_lint_profile_scikit_image_ok(self):
+        result = runner.invoke(app, ["lint-profile", "profiles/scikit-image.yaml"])
+        assert result.exit_code == 0
+
+    def test_lint_profile_diffusers_ok(self):
+        result = runner.invoke(app, ["lint-profile", "profiles/diffusers.yaml"])
+        assert result.exit_code == 0
+
+    def test_lint_profile_invalid_exits_nonzero(self, tmp_path):
+        bad = tmp_path / "bad.yaml"
+        bad.write_text("name: only-a-name\n")
+        result = runner.invoke(app, ["lint-profile", str(bad)])
+        assert result.exit_code == 1
+
+
+class TestCLIErrorHandling:
+    """Bad inputs produce a friendly message and clean exit, not a traceback."""
+
+    def test_check_missing_workspace_friendly(self):
+        """ob check on a missing path exits 1 with a friendly error."""
+        result = runner.invoke(app, ["check", "/no/such/path/xyz123"])
+        assert result.exit_code == 1
+        assert "Error" in result.output
+        assert not isinstance(result.exception, FileNotFoundError)
+
+    def test_check_missing_profile_friendly(self):
+        """ob check with a missing profile exits 1 with a friendly error."""
+        result = runner.invoke(
+            app,
+            [
+                "check",
+                "examples/safe-first-contrib",
+                "--profile",
+                "does-not-exist.yaml",
+            ],
+        )
+        assert result.exit_code == 1
+        assert "Error" in result.output
+        assert not isinstance(result.exception, FileNotFoundError)
+
+    def test_check_malformed_profile_friendly(self, tmp_path):
+        """ob check with a schema-invalid profile exits 1 with a friendly error."""
+        bad = tmp_path / "bad.yaml"
+        bad.write_text("name: just-a-name\n")
+        result = runner.invoke(
+            app,
+            ["check", "examples/safe-first-contrib", "--profile", str(bad)],
+        )
+        assert result.exit_code == 1
+        assert "Error" in result.output

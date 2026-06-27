@@ -4,15 +4,33 @@ Run with: fastmcp run src/ob/mcp_server.py
 Or:       python -m ob.mcp_server
 """
 
+import os
 from pathlib import Path
 
 from fastmcp import FastMCP
 
 from ob.commands.check import check_workspace as _run_check
+from ob.models import LibraryProfile
 from ob.profile import load_profile
 
 REPO_ROOT = Path(__file__).parent.parent.parent
-PROFILE_PATH = REPO_ROOT / "profiles" / "scikit-image.yaml"
+DEFAULT_PROFILE_PATH = REPO_ROOT / "profiles" / "scikit-image.yaml"
+
+
+def _profile_path() -> Path:
+    """Active profile path, selectable via the OB_PROFILE env var.
+
+    This is what makes the profile swap real for the MCP surface: set
+    OB_PROFILE (e.g. in .cursor/mcp.json) to point at another library's YAML
+    and every resource and the check tool re-theme with no code change.
+    Relative paths resolve against the repo root.
+    """
+    env = os.environ.get("OB_PROFILE")
+    if not env:
+        return DEFAULT_PROFILE_PATH
+    path = Path(env)
+    return path if path.is_absolute() else REPO_ROOT / path
+
 
 mcp = FastMCP(
     "Engineering Onboarding Copilot",
@@ -26,8 +44,8 @@ mcp = FastMCP(
 )
 
 
-def _get_profile():
-    return load_profile(PROFILE_PATH)
+def _get_profile() -> LibraryProfile:
+    return load_profile(_profile_path())
 
 
 def check_workspace_report(path: str) -> dict:
@@ -39,6 +57,16 @@ def check_workspace_report(path: str) -> dict:
     ws = Path(path)
     if not ws.is_absolute():
         ws = REPO_ROOT / ws
+    if not ws.is_dir():
+        # Never report a silent pass for a path that does not exist — that is
+        # indistinguishable from a clean workspace to the calling agent.
+        return {
+            "workspace": str(ws),
+            "passed": False,
+            "error": f"Workspace not found or not a directory: {ws}",
+            "violation_count": 0,
+            "violations": [],
+        }
     result = _run_check(ws, _get_profile())
     return {
         "workspace": str(ws),
@@ -201,6 +229,11 @@ Run `ob check <workspace>` to validate these automatically.
 def get_profile_summary() -> str:
     """High-level summary of the active library profile."""
     profile = _get_profile()
+    path = _profile_path()
+    try:
+        display_path = path.relative_to(REPO_ROOT)
+    except ValueError:
+        display_path = path
     return f"""# Profile: {profile.name}
 
 {profile.description}
@@ -214,8 +247,8 @@ def get_profile_summary() -> str:
 - **Deprecated APIs:** {len(profile.deprecated_apis)}
 - **Role brief templates:** {len(profile.role_brief_templates)}
 
-This profile is loaded from `profiles/scikit-image.yaml`.
-Edit that file to update conventions.
+This profile is loaded from `{display_path}` (set `OB_PROFILE` to use a
+different library's profile). Edit the YAML to update conventions.
 """
 
 

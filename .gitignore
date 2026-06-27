@@ -7,3 +7,25 @@
 .venv/
 __pycache__/
 *.pyc
+
+# Generated demo output from `ob scaffold` — never linted or committed.
+workspaces/
+
+# Local environment + secrets (never committed).
+.env
+
+# Generated HTML onboarding artifact.
+docs/onboarding.html
+
+# Local-only prep artifacts (planning transcript, demo rehearsal, battle cards).
+.internal/
+
+# Coverage output.
+.coverage
+coverage.xml
+htmlcov/
+
+# Tooling caches.
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/

@@ -22,7 +22,7 @@ pytest tests/test_mcp_server.py::TestMCPServerRegistration -q   # MCP serves 7 r
       7 resources). If not, reload Cursor after running setup (so `.venv` exists).
 - [ ] Terminal split visible alongside Cursor
 - [ ] `docs/deck.md` rendered (Marp) or `docs/deck.pdf` open as backup
-- [ ] `docs/cursor-rule-verification.md` rehearsed (the live-catch beat)
+- [ ] Live-catch beat rehearsed (Cursor rule fires the five `SK-*` IDs; `ob check` confirms)
 - [ ] Font size ≥ 16pt in terminal, readable at projector distance
 - [ ] Rich output colors verified on projector (dark background)
 
@@ -77,8 +77,10 @@ in real time — first by Cursor's rules, then by the CLI.
 4. The scikit-image-conventions rule activates → agent identifies the
    violations, cites the matching `SK-*` rule IDs, explains what to do instead
 
-> Rehearse this beat with `docs/cursor-rule-verification.md` before the
-> interview — it has the exact expected output and pass criteria.
+> Expected output: the agent names all five violations with the exact rule
+> IDs listed under the terminal step below (`SK-D-001`, `SK-F-001`, `SK-I-001`,
+> `SK-T-002`, `SK-DOC-001`). If the rules don't fire cleanly, fall back to the
+> terminal `ob check` — same IDs, deterministic.
 
 **Narration:**
 
@@ -101,8 +103,7 @@ ob check examples/bad-first-contrib
 
 **Fallback:** If Cursor rules don't activate cleanly, skip straight to the
 terminal `ob check`. The CLI output is deterministic and will always work.
-The rule moment can be re-attempted during the guardrails section. Full
-fallback narration is in `docs/cursor-rule-verification.md`.
+The rule moment can be re-attempted during the guardrails section.
 
 **Key line:**
 

@@ -5,9 +5,6 @@ Onboarding Copilot. Each entry: **Context → Decision → Rationale →
 Alternatives considered → Status**. This is the one-screen reference for
 defending every choice during the live walkthrough and Q&A.
 
-For the scikit-image-vs-OpenCV depth, see
-[`library-battle-cards.md`](library-battle-cards.md).
-
 ---
 
 ## ADR-001 — The CLI is 100% deterministic (no LLM inside `ob`)
@@ -16,9 +13,9 @@ For the scikit-image-vs-OpenCV depth, see
 tempting to put LLM calls inside the CLI (e.g. "ask a model whether this code
 follows conventions").
 
-**Decision.** `ob` contains zero LLM calls. Every check is rule-based:
-regex for deprecated APIs, AST analysis for imports / TODO-only bodies /
-docstring style, and file-existence tests. All LLM interaction happens
+**Decision.** `ob` contains zero LLM calls. Every check is rule-based: AST
+analysis for imports, deprecated-API usage, and TODO-only bodies; docstring
+section/style checks; and file-existence tests. All LLM interaction happens
 through Cursor's own agent, driven by the rules and MCP server.
 
 **Rationale.** The CLI is the reproducible, inspectable layer the team owns —
@@ -125,8 +122,11 @@ enforce cleanly, which makes for a crisp demo of a safe first contribution.
 
 **Alternatives considered.** OpenCV — its value would be showing complexity
 handling, but the C++/Python binding boundary and less uniform conventions
-make a clean, demonstrable contribution path harder. Full comparison in
-[`library-battle-cards.md`](library-battle-cards.md).
+make a clean, demonstrable contribution path harder. scikit-image's numpydoc
+docstrings, `snake_case` API, per-module `tests/` layout, and explicit
+deprecation policy each map directly onto a profile rule; OpenCV's mixed
+C++/Python surface and looser Python conventions would dilute that one-to-one
+mapping and weaken the demo.
 
 **Status.** Accepted.
 

@@ -4,7 +4,7 @@ import pytest
 import yaml
 from pydantic import ValidationError
 
-from ob.profile import load_profile
+from ob.profile import lint_profile, load_profile
 
 
 class TestLoadProfile:
@@ -119,3 +119,43 @@ class TestProfileSchema:
         profile_path.write_text(yaml.dump(data))
         with pytest.raises(ValidationError, match="forbidden_paths"):
             load_profile(profile_path)
+
+    def test_unknown_key_rejected(self, scikit_image_profile_path, tmp_path):
+        """A misspelled/unknown top-level key fails to load (extra=forbid)."""
+        data = yaml.safe_load(scikit_image_profile_path.read_text())
+        data["aproved_directories"] = data["approved_directories"]  # typo
+        profile_path = tmp_path / "typo.yaml"
+        profile_path.write_text(yaml.dump(data))
+        with pytest.raises(ValidationError):
+            load_profile(profile_path)
+
+
+class TestLintProfile:
+    """Semantic cross-field validation via ob lint-profile (xm1.5)."""
+
+    def test_shipped_profiles_are_clean(
+        self, scikit_image_profile_path, diffusers_profile_path
+    ):
+        assert lint_profile(scikit_image_profile_path) == []
+        assert lint_profile(diffusers_profile_path) == []
+
+    def test_flags_default_directory_not_approved(
+        self, scikit_image_profile_path, tmp_path
+    ):
+        data = yaml.safe_load(scikit_image_profile_path.read_text())
+        data["default_directory"] = "skimage/not_a_real_dir/"
+        profile_path = tmp_path / "bad.yaml"
+        profile_path.write_text(yaml.dump(data))
+        problems = lint_profile(profile_path)
+        assert problems
+        assert any("default_directory" in m for m in problems)
+
+    def test_flags_keyword_module_without_approved_dir(
+        self, scikit_image_profile_path, tmp_path
+    ):
+        data = yaml.safe_load(scikit_image_profile_path.read_text())
+        data["directory_keywords"] = {"not_a_module": ["foo"]}
+        profile_path = tmp_path / "bad.yaml"
+        profile_path.write_text(yaml.dump(data))
+        problems = lint_profile(profile_path)
+        assert any("directory_keywords" in m for m in problems)

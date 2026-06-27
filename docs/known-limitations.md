@@ -5,10 +5,10 @@ would be addressed in a real customer engagement.
 
 ## 1. Deterministic checks only — no semantic code understanding
 
-The checker applies rule-based pattern matching against the profile
-(regex for deprecated APIs, AST-level import checks, file existence
-tests). It cannot understand whether code is *logically* correct, only
-whether it follows structural conventions.
+The checker applies rule-based analysis against the profile (AST-level
+import and deprecated-API checks, TODO-only-body detection, docstring
+section checks, and file-existence tests). It cannot understand whether
+code is *logically* correct, only whether it follows structural conventions.
 
 **In a real engagement:** Layer LLM-powered semantic review on top of
 the deterministic checks — use the Cursor agent for nuanced review

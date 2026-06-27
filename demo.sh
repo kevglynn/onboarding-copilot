@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# Note: intentionally NOT using `set -e`. Section 1 runs `ob check` on the bad
+# example, which exits non-zero BY DESIGN (it found violations). Under `set -e`
+# that would abort the whole demo after Section 1.
+set -uo pipefail
 
 # Engineering Onboarding Copilot — Demo Launcher
 # Prints each command before executing. Pauses between sections.
-# Usage: bash demo.sh
+# Usage: bash demo.sh   (run from the repo root)
 
 BOLD='\033[1m'
 DIM='\033[2m'
@@ -12,11 +15,22 @@ GREEN='\033[32m'
 RED='\033[31m'
 RESET='\033[0m'
 
+# Make `ob` available without requiring the caller to pre-activate the venv.
+if [ -f .venv/bin/activate ]; then
+    # shellcheck disable=SC1091
+    source .venv/bin/activate
+elif ! command -v ob >/dev/null 2>&1; then
+    echo -e "${RED}error:${RESET} .venv not found and 'ob' is not on PATH." >&2
+    echo "Run setup first, from the repo root:" >&2
+    echo "  uv venv && source .venv/bin/activate && uv pip install -e \".[dev]\"" >&2
+    exit 1
+fi
+
 run() {
     echo ""
     echo -e "${CYAN}${BOLD}\$ $*${RESET}"
     echo -e "${DIM}─────────────────────────────────────────${RESET}"
-    "$@"
+    "$@" || echo -e "${DIM}(command exited with status $? — continuing demo)${RESET}"
 }
 
 pause() {

@@ -1,5 +1,9 @@
 """Tests for the scaffold command."""
 
+import ast
+import shutil
+import subprocess
+
 import pytest
 
 from ob.commands.scaffold import _infer_module_name, _slugify, scaffold_workspace
@@ -86,6 +90,61 @@ class TestScaffoldGuardrails:
         )
         assert ws is None
 
+    def test_does_not_falsely_refuse_build_word(self, tmp_path, profile):
+        """A task mentioning 'build' (substring of _build) is not refused."""
+        ws = scaffold_workspace(
+            "add a build helper for thresholding",
+            profile,
+            base_dir=tmp_path,
+        )
+        assert ws is not None
+
+    def test_does_not_falsely_refuse_shared_word(self, tmp_path, profile):
+        """A task mentioning the word 'shared' is not refused (only _shared)."""
+        ws = scaffold_workspace(
+            "add shared-memory documentation to filters",
+            profile,
+            base_dir=tmp_path,
+        )
+        assert ws is not None
+
+
+class TestScaffoldLintClean:
+    """Scaffolded stubs must pass the repo's own lint gate."""
+
+    def test_stubs_pass_ruff_check(self, tmp_path, profile):
+        """Freshly scaffolded code passes `ruff check` with zero errors."""
+        ruff = shutil.which("ruff")
+        if ruff is None:
+            pytest.skip("ruff not on PATH")
+        ws = scaffold_workspace("add new filter", profile, base_dir=tmp_path)
+        result = subprocess.run(
+            [ruff, "check", str(ws)],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+
+
+class TestScaffoldEdgeCases:
+    """Degenerate task strings still produce valid output."""
+
+    def test_numeric_task_produces_valid_module(self, tmp_path, profile):
+        """A digit-only task yields a syntactically valid source stub."""
+        ws = scaffold_workspace("123", profile, base_dir=tmp_path)
+        assert ws is not None
+        sources = [f for f in ws.rglob("*.py") if not f.name.startswith("test_")]
+        assert sources
+        ast.parse(sources[0].read_text())
+
+    def test_symbol_only_task_produces_valid_module(self, tmp_path, profile):
+        """A task with no word characters still yields a valid module."""
+        ws = scaffold_workspace("!!!", profile, base_dir=tmp_path)
+        assert ws is not None
+        sources = [f for f in ws.rglob("*.py") if not f.name.startswith("test_")]
+        assert sources
+        ast.parse(sources[0].read_text())
+
 
 class TestDirectoryInference:
     """Task descriptions route to the correct approved directory."""
@@ -132,6 +191,37 @@ class TestDirectoryInference:
         exposure_files = list((ws / "skimage" / "exposure").rglob("*.py"))
         assert exposure_files, "expected source under skimage/exposure/"
         assert not (ws / "skimage" / "io").exists()
+
+
+class TestScaffoldHonorsProfileLayout:
+    """Scaffold derives test location and names from the profile (xm1.4)."""
+
+    def test_skimage_test_colocated_and_named_from_patterns(self, tmp_path, profile):
+        """scikit-image: tests co-located, methods from required_patterns."""
+        ws = scaffold_workspace("edge detection filter", profile, base_dir=tmp_path)
+        test_files = list(ws.rglob("test_*.py"))
+        assert test_files
+        rel = str(test_files[0].relative_to(ws))
+        assert rel.startswith("skimage/filters/tests/"), rel
+        content = test_files[0].read_text()
+        assert "def test_shape_preservation" in content
+        assert "def test_dtype_roundtrip" in content
+
+    def test_diffusers_layout_and_google_docstring(
+        self, tmp_path, diffusers_profile_path
+    ):
+        """diffusers: tests under tests/, google docstring, profile test names."""
+        profile = load_profile(diffusers_profile_path)
+        ws = scaffold_workspace("add a new scheduler", profile, base_dir=tmp_path)
+        sources = [f for f in ws.rglob("*.py") if not f.name.startswith("test_")]
+        assert any("Args:" in f.read_text() for f in sources)
+        test_files = list(ws.rglob("test_*.py"))
+        assert test_files
+        rel = str(test_files[0].relative_to(ws))
+        assert rel.startswith("tests/"), rel
+        content = test_files[0].read_text()
+        assert "def test_output_shape" in content
+        assert "def test_deterministic_seed" in content
 
 
 class TestSlugify:

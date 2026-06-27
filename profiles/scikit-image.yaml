@@ -42,15 +42,12 @@ deprecated_apis:
   - symbol: skimage.filters.median
     replacement: skimage.filters.rank.median
     reason: Moved to rank submodule for consistency
-    since_version: "0.23"
   - symbol: skimage.measure.marching_cubes_lewiner
     replacement: skimage.measure.marching_cubes
     reason: Consolidated into single marching_cubes function
-    since_version: "0.19"
   - symbol: skimage.transform.estimate_transform
     replacement: skimage.transform.AffineTransform.estimate
     reason: Refactored to class method pattern
-    since_version: "0.22"
 
 docstring_convention:
   style: numpydoc

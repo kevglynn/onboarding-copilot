@@ -6,23 +6,6 @@ from pathlib import Path
 from ob.models import LibraryProfile
 
 
-def is_approved_directory(path: str, profile: LibraryProfile) -> bool:
-    """Check if a path falls within the profile's approved directories."""
-    normalized = path.rstrip("/") + "/"
-    return any(
-        normalized.startswith(d.rstrip("/") + "/") or d.rstrip("/") + "/" == normalized
-        for d in profile.approved_directories
-    )
-
-
-def is_forbidden_path(path: str, profile: LibraryProfile) -> bool:
-    """Check if a path falls within the profile's forbidden paths."""
-    normalized = path.rstrip("/") + "/"
-    return any(
-        normalized.startswith(f.rstrip("/") + "/") for f in profile.forbidden_paths
-    )
-
-
 def validate_workspace_path(workspace: str) -> Path:
     """Validate that a workspace path exists and is a directory."""
     ws = Path(workspace)

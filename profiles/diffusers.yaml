@@ -15,6 +15,11 @@ forbidden_paths:
   - src/diffusers/_internal/
   - src/diffusers/__pycache__/
 
+# diffusers uses a src-layout: files live under src/diffusers/ but are imported
+# as `diffusers.*`. Stripping this prefix lets the forbidden-import check match
+# dotted imports against the on-disk forbidden_paths above.
+import_root: "src/"
+
 test_conventions:
   framework: pytest
   file_pattern: "test_*.py"
@@ -28,7 +33,6 @@ deprecated_apis:
   - symbol: diffusers.StableDiffusionPipeline.enable_attention_slicing
     replacement: Use torch.backends.cuda.enable_flash_sdp()
     reason: Flash attention is now the default
-    since_version: "0.28"
 
 docstring_convention:
   style: google

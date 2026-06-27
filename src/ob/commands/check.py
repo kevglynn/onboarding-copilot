@@ -1,7 +1,6 @@
 """Convention checker — validates a workspace against the library profile."""
 
 import ast
-import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -9,7 +8,6 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from ob.guardrails import is_forbidden_path
 from ob.models import LibraryProfile
 
 
@@ -62,6 +60,18 @@ def _rel(src: Path, workspace: Path) -> str:
         return str(src)
 
 
+def _safe_read(src: Path) -> str | None:
+    """Read a source file as UTF-8, returning None if it cannot be decoded.
+
+    Binary blobs or non-UTF-8 files in a workspace should be skipped, not crash
+    the whole check run.
+    """
+    try:
+        return src.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError):
+        return None
+
+
 def _check_missing_tests(
     source_files: list[Path],
     test_files: list[Path],
@@ -73,18 +83,14 @@ def _check_missing_tests(
     test_names = {f.name for f in test_files}
     for src in source_files:
         if src.name.startswith("_") and src.name != "__init__.py":
-            expected_test = f"test{src.name.lstrip('_')}"
-            has_test = (
-                f"test_{src.name.lstrip('_')}" in test_names
-                or expected_test in test_names
-            )
+            has_test = f"test_{src.name.lstrip('_')}" in test_names
             if not has_test:
                 result.violations.append(
                     Violation(
                         rule_id=f"{profile.rule_prefix}-T-002",
                         severity="error",
                         message=f"Missing test file for {src.name}",
-                        file=str(src.relative_to(workspace)),
+                        file=_rel(src, workspace),
                     )
                 )
 
@@ -93,8 +99,10 @@ def _check_todo_only(
     src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
 ) -> None:
     """Check for TODO-only implementations (no real logic)."""
-    content = src.read_text()
     if src.name == "__init__.py":
+        return
+    content = _safe_read(src)
+    if content is None:
         return
 
     try:
@@ -140,89 +148,240 @@ def _check_todo_only(
                 )
 
 
+def _forbidden_import_prefixes(profile: LibraryProfile) -> list[str]:
+    """Forbidden paths expressed as importable dotted-path prefixes.
+
+    Strips the profile's ``import_root`` (e.g. ``src/``) so on-disk paths like
+    ``src/diffusers/_internal/`` match dotted imports like ``diffusers._internal``.
+    """
+    root = profile.import_root.strip("/")
+    prefixes: list[str] = []
+    for forbidden in profile.forbidden_paths:
+        path = forbidden.strip("/")
+        if root and (path == root or path.startswith(root + "/")):
+            path = path[len(root) :].strip("/")
+        if path:
+            prefixes.append(path)
+    return prefixes
+
+
+def _import_is_forbidden(module: str, prefixes: list[str]) -> bool:
+    """Whether a dotted import path falls under any forbidden prefix."""
+    module_path = module.replace(".", "/")
+    return any(
+        module_path == prefix or module_path.startswith(prefix + "/")
+        for prefix in prefixes
+    )
+
+
+def _imported_modules(tree: ast.AST) -> list[tuple[str, int]]:
+    """All imported dotted module paths with their line numbers.
+
+    Covers both ``import a.b.c`` and ``from a.b import c`` so a forbidden
+    module is caught regardless of the import form used.
+    """
+    modules: list[tuple[str, int]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            modules.extend((alias.name, node.lineno) for alias in node.names)
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            modules.append((node.module, node.lineno))
+    return modules
+
+
 def _check_forbidden_imports(
     src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
 ) -> None:
-    """Check for imports from forbidden/private modules."""
-    content = src.read_text()
+    """Check for imports from forbidden/private modules (any import form)."""
+    content = _safe_read(src)
+    if content is None:
+        return
     try:
         tree = ast.parse(content)
     except SyntaxError:
         return
 
-    for node in ast.walk(tree):
-        if isinstance(node, ast.ImportFrom) and node.module:
-            module_path = node.module.replace(".", "/") + "/"
-            if is_forbidden_path(module_path, profile):
-                result.violations.append(
-                    Violation(
-                        rule_id=f"{profile.rule_prefix}-F-001",
-                        severity="error",
-                        message=(f"Import from forbidden module: {node.module}"),
-                        file=_rel(src, workspace),
-                        line=node.lineno,
-                    )
+    prefixes = _forbidden_import_prefixes(profile)
+    for module, lineno in _imported_modules(tree):
+        if _import_is_forbidden(module, prefixes):
+            result.violations.append(
+                Violation(
+                    rule_id=f"{profile.rule_prefix}-F-001",
+                    severity="error",
+                    message=f"Import from forbidden module: {module}",
+                    file=_rel(src, workspace),
+                    line=lineno,
                 )
+            )
+
+
+def _dotted_name(node: ast.AST) -> str | None:
+    """Reconstruct a dotted name (e.g. ``ski.filters.median``) from an AST node."""
+    parts: list[str] = []
+    current = node
+    while isinstance(current, ast.Attribute):
+        parts.append(current.attr)
+        current = current.value
+    if isinstance(current, ast.Name):
+        parts.append(current.id)
+        return ".".join(reversed(parts))
+    return None
+
+
+def _import_bindings(tree: ast.AST) -> tuple[dict[str, str], dict[str, str]]:
+    """Map locally-bound names back to their fully-qualified targets.
+
+    Returns (module_aliases, symbol_aliases):
+      - ``import skimage as ski``        -> module_aliases['ski'] = 'skimage'
+      - ``from skimage.filters import median`` ->
+            symbol_aliases['median'] = 'skimage.filters.median'
+    """
+    module_aliases: dict[str, str] = {}
+    symbol_aliases: dict[str, str] = {}
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.asname:
+                    module_aliases[alias.asname] = alias.name
+                else:
+                    top = alias.name.split(".")[0]
+                    module_aliases[top] = top
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            for alias in node.names:
+                bound = alias.asname or alias.name
+                symbol_aliases[bound] = f"{node.module}.{alias.name}"
+    return module_aliases, symbol_aliases
+
+
+def _resolve_dotted(
+    dotted: str, module_aliases: dict[str, str], symbol_aliases: dict[str, str]
+) -> str | None:
+    """Resolve a dotted name to its fully-qualified form using import bindings."""
+    head, _, rest = dotted.partition(".")
+    if head in module_aliases:
+        base = module_aliases[head]
+        return f"{base}.{rest}" if rest else base
+    if dotted in symbol_aliases:
+        return symbol_aliases[dotted]
+    if head in symbol_aliases:
+        base = symbol_aliases[head]
+        return f"{base}.{rest}" if rest else base
+    return None
 
 
 def _check_deprecated_apis(
     src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
 ) -> None:
-    """Check for usage of deprecated APIs."""
-    content = src.read_text()
-    for dep in profile.deprecated_apis:
-        parts = dep.symbol.rsplit(".", 1)
-        if len(parts) == 2:
-            module, name = parts
-            pattern = rf"from\s+{re.escape(module)}\s+import\s+.*\b{re.escape(name)}\b"
-            for i, line in enumerate(content.splitlines(), 1):
-                if re.search(pattern, line):
-                    result.violations.append(
-                        Violation(
-                            rule_id=f"{profile.rule_prefix}-D-001",
-                            severity="warning",
-                            message=(
-                                f"Deprecated API: {dep.symbol} — "
-                                f"use {dep.replacement} instead"
-                            ),
-                            file=_rel(src, workspace),
-                            line=i,
-                        )
-                    )
+    """Flag deprecated APIs, whether imported or used as attribute access.
 
-
-def _check_docstring_style(
-    src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
-) -> None:
-    """Check docstring style matches profile convention."""
-    if profile.docstring_convention.style != "numpydoc":
+    Catches three idioms: ``from m import sym``, ``import m as a; a...sym(...)``,
+    and ``import pkg as p; p.sub.sym(...)`` — not just the import line.
+    """
+    if not profile.deprecated_apis:
         return
-
-    content = src.read_text()
+    content = _safe_read(src)
+    if content is None:
+        return
     try:
         tree = ast.parse(content)
     except SyntaxError:
         return
 
+    symbols = {dep.symbol: dep for dep in profile.deprecated_apis}
+    module_aliases, symbol_aliases = _import_bindings(tree)
+    seen: set[tuple[str, int]] = set()
+
+    def flag(symbol: str, line: int) -> None:
+        if (symbol, line) in seen:
+            return
+        seen.add((symbol, line))
+        dep = symbols[symbol]
+        result.violations.append(
+            Violation(
+                rule_id=f"{profile.rule_prefix}-D-001",
+                severity="warning",
+                message=(f"Deprecated API: {symbol} — use {dep.replacement} instead"),
+                file=_rel(src, workspace),
+                line=line,
+            )
+        )
+
     for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            docstring = ast.get_docstring(node)
-            if not docstring:
+        if isinstance(node, ast.ImportFrom) and node.module:
+            for alias in node.names:
+                full = f"{node.module}.{alias.name}"
+                if full in symbols:
+                    flag(full, node.lineno)
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name in symbols:
+                    flag(alias.name, node.lineno)
+        elif isinstance(node, (ast.Attribute, ast.Name)):
+            dotted = _dotted_name(node)
+            if dotted is None:
                 continue
-            if "Args:" in docstring or "Arguments:" in docstring:
-                result.violations.append(
-                    Violation(
-                        rule_id=f"{profile.rule_prefix}-DOC-001",
-                        severity="warning",
-                        message=(
-                            f"Function '{node.name}' uses Google-style "
-                            f"docstring (Args:) — expected numpydoc "
-                            f"(Parameters:)"
-                        ),
-                        file=_rel(src, workspace),
-                        line=node.lineno,
-                    )
+            resolved = _resolve_dotted(dotted, module_aliases, symbol_aliases)
+            if resolved in symbols:
+                flag(resolved, node.lineno)
+
+
+def _check_docstring_style(
+    src: Path, workspace: Path, profile: LibraryProfile, result: CheckResult
+) -> None:
+    """Check docstrings match the profile's style and required sections.
+
+    Emits at most one DOC-001 per function: a style mismatch takes precedence
+    (fix the style first), otherwise missing required sections are reported.
+    Works for any style — numpydoc, google, etc. — via the profile.
+    """
+    content = _safe_read(src)
+    if content is None:
+        return
+    try:
+        tree = ast.parse(content)
+    except SyntaxError:
+        return
+
+    style = profile.docstring_convention.style
+    required = profile.docstring_convention.required_sections
+    prefix = profile.rule_prefix
+
+    for node in ast.walk(tree):
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        docstring = ast.get_docstring(node)
+        if not docstring:
+            continue
+
+        if style == "numpydoc" and ("Args:" in docstring or "Arguments:" in docstring):
+            result.violations.append(
+                Violation(
+                    rule_id=f"{prefix}-DOC-001",
+                    severity="warning",
+                    message=(
+                        f"Function '{node.name}' uses Google-style "
+                        f"docstring (Args:) — expected numpydoc (Parameters:)"
+                    ),
+                    file=_rel(src, workspace),
+                    line=node.lineno,
                 )
+            )
+            continue
+
+        missing = [section for section in required if section not in docstring]
+        if missing:
+            result.violations.append(
+                Violation(
+                    rule_id=f"{prefix}-DOC-001",
+                    severity="warning",
+                    message=(
+                        f"Function '{node.name}' docstring is missing required "
+                        f"section(s): {', '.join(missing)}"
+                    ),
+                    file=_rel(src, workspace),
+                    line=node.lineno,
+                )
+            )
 
 
 def render_check_result(result: CheckResult, console: Console) -> None:
@@ -261,20 +420,3 @@ def render_check_result(result: CheckResult, console: Console) -> None:
 
     console.print(table)
     console.print(f"\n[bold red]{len(result.violations)} violation(s) found[/bold red]")
-
-
-def render_check_result_markdown(result: CheckResult) -> str:
-    """Render check results as markdown."""
-    if result.passed:
-        return f"## ob check: {result.workspace}\n\nAll checks passed.\n"
-
-    lines = [f"## ob check: {result.workspace}\n"]
-    lines.append(f"**{len(result.violations)} violation(s) found**\n")
-    lines.append("| Rule | Severity | File | Message |")
-    lines.append("|------|----------|------|---------|")
-    for v in result.violations:
-        file_loc = v.file
-        if v.line:
-            file_loc += f":{v.line}"
-        lines.append(f"| {v.rule_id} | {v.severity} | {file_loc} | {v.message} |")
-    return "\n".join(lines) + "\n"

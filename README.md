@@ -127,20 +127,19 @@ to `$GITHUB_STEP_SUMMARY`.
 ├── examples/
 │   ├── bad-first-contrib/     # Seeded violations (demo)
 │   └── safe-first-contrib/    # Clean example (demo)
-├── tests/                     # 77 tests
+├── tests/                     # 107 tests
 ├── docs/
 │   ├── demo.md                # 45-min walkthrough script
 │   ├── deck.md                # Marp slide deck (6 slides)
 │   ├── deck.pdf               # Pre-rendered PDF backup
 │   ├── decisions.md           # ADR-style decision log
-│   ├── cursor-rule-verification.md  # Centerpiece rehearsal protocol
-│   ├── known-limitations.md   # 7 honest limitations
-│   └── library-battle-cards.md
+│   └── known-limitations.md   # 7 honest limitations
 ├── .cursor/
 │   ├── rules/                 # SDLC-stage Cursor rules
 │   └── mcp.json               # Registers the MCP server with Cursor
 ├── .github/workflows/ci.yml   # CI pipeline
 ├── demo.sh                    # Choreographed demo launcher
+├── LICENSE                    # MIT
 └── pyproject.toml             # Project config
 ```
 
@@ -172,3 +171,7 @@ Quick version:
 ```bash
 bash demo.sh
 ```
+
+## License
+
+[MIT](LICENSE).

@@ -1,0 +1,11 @@
+# Code ownership for review routing.
+#
+# Replace @OWNER with the GitHub username or team that owns this repository
+# (e.g. @your-handle or @org/team). GitHub will then request review from the
+# owner automatically on every pull request.
+*               @OWNER
+
+# Conventions are team-owned — changes to a library profile or the generated
+# Cursor rule should get extra scrutiny from the convention owners.
+/profiles/      @OWNER
+/.cursor/rules/ @OWNER

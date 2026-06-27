@@ -19,6 +19,15 @@ jobs:
       - run: uv venv --python 3.12 && source .venv/bin/activate && uv pip install -e ".[dev]"
       - run: source .venv/bin/activate && ruff check .
       - run: source .venv/bin/activate && ruff format --check .
+      - name: Validate library profiles
+        run: |
+          source .venv/bin/activate
+          ob lint-profile profiles/scikit-image.yaml
+          ob lint-profile profiles/diffusers.yaml
+      - name: Cursor rule is in sync with the profile (no drift)
+        run: source .venv/bin/activate && python scripts/render_rules.py --check
+      - name: Type check (mypy)
+        run: source .venv/bin/activate && mypy
 
   test:
     name: Test
@@ -27,7 +36,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: astral-sh/setup-uv@v7
       - run: uv venv --python 3.12 && source .venv/bin/activate && uv pip install -e ".[dev]"
-      - run: source .venv/bin/activate && pytest -v
+      - run: source .venv/bin/activate && pytest -v --cov=ob --cov-report=term-missing
 
   check-bad:
     name: "ob check — bad-first-contrib (expect failure)"

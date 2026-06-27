@@ -1,10 +1,12 @@
 """Pydantic models for library convention profiles."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class TestConventions(BaseModel):
     """Testing conventions for the library."""
+
+    model_config = ConfigDict(extra="forbid")
 
     framework: str = Field(description="Test framework name (e.g., pytest)")
     file_pattern: str = Field(description="Test file naming pattern (e.g., test_*.py)")
@@ -24,14 +26,17 @@ class TestConventions(BaseModel):
 class DeprecatedAPI(BaseModel):
     """A deprecated API entry with replacement guidance."""
 
+    model_config = ConfigDict(extra="forbid")
+
     symbol: str = Field(description="Fully qualified deprecated symbol")
     replacement: str = Field(description="Recommended replacement")
     reason: str = Field(default="", description="Why it was deprecated")
-    since_version: str = Field(default="", description="Version when deprecated")
 
 
 class DocstringConvention(BaseModel):
     """Docstring format requirements."""
+
+    model_config = ConfigDict(extra="forbid")
 
     style: str = Field(description="Docstring style: numpydoc, google, sphinx")
     required_sections: list[str] = Field(
@@ -47,6 +52,8 @@ class DocstringConvention(BaseModel):
 class RoleBriefTemplate(BaseModel):
     """Template sections for a specific role's brief."""
 
+    model_config = ConfigDict(extra="forbid")
+
     role: str = Field(description="Role name: engineer, pm, qa, devops")
     sections: list[str] = Field(description="Section headings for this role's brief")
     focus: str = Field(description="What this role cares about most")
@@ -60,6 +67,8 @@ class LibraryProfile(BaseModel):
     this schema. The team owns the YAML; the engine owns the logic.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     name: str = Field(description="Library display name")
     version: str = Field(description="Profile schema version")
     description: str = Field(description="One-line library description")
@@ -70,6 +79,15 @@ class LibraryProfile(BaseModel):
     )
     forbidden_paths: list[str] = Field(
         description="Paths that must never be imported from or written to"
+    )
+    import_root: str = Field(
+        default="",
+        description=(
+            "Filesystem prefix that is NOT part of the import path "
+            "(e.g. 'src/' for a src-layout repo). Stripped from forbidden_paths "
+            "when matching against dotted import statements, so "
+            "'src/diffusers/_internal/' correctly flags 'import diffusers._internal'."
+        ),
     )
 
     test_conventions: TestConventions
