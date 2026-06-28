@@ -53,11 +53,16 @@ def check_workspace(workspace: Path, profile: LibraryProfile) -> CheckResult:
 
 
 def _rel(src: Path, workspace: Path) -> str:
-    """Path relative to the workspace for clean, consistent display."""
+    """Path relative to the workspace for clean, consistent display.
+
+    Always renders with forward slashes (``as_posix``) so violation output is
+    identical on Windows and POSIX — the rule IDs and file column match the
+    documented demo output regardless of the host OS.
+    """
     try:
-        return str(src.relative_to(workspace))
+        return src.relative_to(workspace).as_posix()
     except ValueError:
-        return str(src)
+        return src.as_posix()
 
 
 def _safe_read(src: Path) -> str | None:

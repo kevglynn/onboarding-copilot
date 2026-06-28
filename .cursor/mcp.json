@@ -2,8 +2,16 @@
   "mcpServers": {
     "onboarding-copilot": {
       "type": "stdio",
-      "command": "${workspaceFolder}/.venv/bin/python",
-      "args": ["-m", "ob.mcp_server"],
+      "command": "uv",
+      "args": [
+        "run",
+        "--no-sync",
+        "--project",
+        "${workspaceFolder}",
+        "python",
+        "-m",
+        "ob.mcp_server"
+      ],
       "env": {
         "OB_PROFILE": "profiles/scikit-image.yaml"
       }

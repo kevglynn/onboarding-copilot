@@ -33,7 +33,11 @@ the agentic interaction through the rules configured in this workspace.
 ```bash
 git clone git@github.com:kevglynn/cursor-takehome-assignment.git
 cd cursor-takehome-assignment
+
+# macOS / Linux
 uv venv && source .venv/bin/activate
+# Windows (PowerShell): uv venv; .venv\Scripts\Activate.ps1
+
 uv pip install -e ".[dev]"
 
 ob --version          # verify installation
@@ -138,7 +142,8 @@ to `$GITHUB_STEP_SUMMARY`.
 │   ├── rules/                 # SDLC-stage Cursor rules
 │   └── mcp.json               # Registers the MCP server with Cursor
 ├── .github/workflows/ci.yml   # CI pipeline
-├── demo.sh                    # Choreographed demo launcher
+├── demo.sh                    # Demo launcher (macOS/Linux)
+├── demo.ps1                   # Demo launcher (Windows/PowerShell)
 ├── LICENSE                    # MIT
 └── pyproject.toml             # Project config
 ```
@@ -169,7 +174,8 @@ See [docs/demo.md](docs/demo.md) for the full 45-minute walkthrough script.
 Quick version:
 
 ```bash
-bash demo.sh
+bash demo.sh        # macOS / Linux
+pwsh -File demo.ps1 # Windows (PowerShell)
 ```
 
 ## License

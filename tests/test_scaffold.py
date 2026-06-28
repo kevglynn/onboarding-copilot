@@ -201,7 +201,7 @@ class TestScaffoldHonorsProfileLayout:
         ws = scaffold_workspace("edge detection filter", profile, base_dir=tmp_path)
         test_files = list(ws.rglob("test_*.py"))
         assert test_files
-        rel = str(test_files[0].relative_to(ws))
+        rel = test_files[0].relative_to(ws).as_posix()
         assert rel.startswith("skimage/filters/tests/"), rel
         content = test_files[0].read_text()
         assert "def test_shape_preservation" in content
@@ -217,7 +217,7 @@ class TestScaffoldHonorsProfileLayout:
         assert any("Args:" in f.read_text() for f in sources)
         test_files = list(ws.rglob("test_*.py"))
         assert test_files
-        rel = str(test_files[0].relative_to(ws))
+        rel = test_files[0].relative_to(ws).as_posix()
         assert rel.startswith("tests/"), rel
         content = test_files[0].read_text()
         assert "def test_output_shape" in content
