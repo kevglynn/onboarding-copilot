@@ -81,3 +81,25 @@ tools, so the agent still shells out to the CLI for those.
 too, so the agent can create a convention-compliant workspace and generate
 role briefs autonomously — completing fully agent-driven enforcement end to
 end.
+
+## 8. No profile composition — single YAML per workspace
+
+The current architecture supports one profile per workspace. A monorepo with
+multiple libraries (e.g., a shared `utils/` alongside several domain packages)
+or an org with multiple teams sharing a repo would need either multiple
+profiles (one per subdirectory, switched via `--profile`) or a composition
+mechanism (base profile + team-specific overlays).
+
+**In a real engagement:** Add an `extends` field to the profile schema:
+
+```yaml
+extends: profiles/org-base.yaml
+name: my-team-library
+# Team-specific overrides merged on top of the base
+```
+
+The merge semantics are straightforward — lists concatenate (approved
+directories, deprecated APIs), scalars override (rule_prefix, docstring
+style). This gives org-wide conventions a single enforcement point while
+letting teams customize. The YAML schema already accommodates this with
+minimal extension to the loader.

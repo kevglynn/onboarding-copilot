@@ -111,6 +111,14 @@ The rule moment can be re-attempted during the guardrails section.
 > class of defect no longer reaches code review — and everyone else
 > gets visibility without extra meetings."
 
+**Prevention bridge (after the key line):**
+
+> "And here's the upstream value: because the MCP server feeds these
+> conventions into Cursor's context, the *next* engineer who asks
+> the agent for help gets code that follows them from the start —
+> before any linter runs. Detection is the safety net. Prevention
+> is the real product."
+
 ---
 
 ## Section 2 — The Clean Path (0:08–0:13)

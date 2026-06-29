@@ -137,7 +137,8 @@ to `$GITHUB_STEP_SUMMARY`.
 │   ├── deck.md                # Marp slide deck (6 slides)
 │   ├── deck.pdf               # Pre-rendered PDF backup
 │   ├── decisions.md           # ADR-style decision log
-│   └── known-limitations.md   # 7 honest limitations
+│   ├── deployment-guide.md    # Rollout path for real orgs
+│   └── known-limitations.md   # 8 honest limitations
 ├── .cursor/
 │   ├── rules/                 # SDLC-stage Cursor rules
 │   └── mcp.json               # Registers the MCP server with Cursor
@@ -167,6 +168,12 @@ See [docs/decisions.md](docs/decisions.md) for the ADR-style log behind every
 architectural choice (deterministic CLI, MCP-as-core, `ob` naming,
 profile-driven design, scikit-image over OpenCV, demo-script-as-spec, and
 CI-delivered briefs) — each with context, rationale, and alternatives.
+
+## Deployment
+
+See [docs/deployment-guide.md](docs/deployment-guide.md) for how to roll this
+out at a real organization — roles, minimum viable profile, CI integration,
+success metrics, and rollout sequence.
 
 ## Demo
 
