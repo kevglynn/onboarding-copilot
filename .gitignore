@@ -17,6 +17,10 @@ workspaces/
 # Generated HTML onboarding artifact.
 docs/onboarding.html
 
+# Presentation deck HTML (prep artifacts, not deliverables).
+docs/deck-slides.html
+docs/deck.html
+
 # Local-only prep artifacts (planning transcript, demo rehearsal, battle cards).
 .internal/
 
