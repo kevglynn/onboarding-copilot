@@ -21,9 +21,6 @@ docs/onboarding.html
 docs/deck-slides.html
 docs/deck.html
 
-# Local-only prep artifacts (planning transcript, demo rehearsal, battle cards).
-.internal/
-
 # Coverage output.
 .coverage
 coverage.xml
