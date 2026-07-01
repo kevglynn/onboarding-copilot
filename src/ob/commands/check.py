@@ -87,17 +87,22 @@ def _check_missing_tests(
     """Check that source files have corresponding test files."""
     test_names = {f.name for f in test_files}
     for src in source_files:
-        if src.name.startswith("_") and src.name != "__init__.py":
-            has_test = f"test_{src.name.lstrip('_')}" in test_names
-            if not has_test:
-                result.violations.append(
-                    Violation(
-                        rule_id=f"{profile.rule_prefix}-T-002",
-                        severity="error",
-                        message=f"Missing test file for {src.name}",
-                        file=_rel(src, workspace),
-                    )
+        if src.name == "__init__.py":
+            continue
+        # A module's test is test_<name>.py; a leading underscore on the
+        # module (private helper) is dropped so _local_contrast.py maps to
+        # test_local_contrast.py. Public and private modules alike must have
+        # a matching test — the rule is not scoped to private files.
+        has_test = f"test_{src.name.lstrip('_')}" in test_names
+        if not has_test:
+            result.violations.append(
+                Violation(
+                    rule_id=f"{profile.rule_prefix}-T-002",
+                    severity="error",
+                    message=f"Missing test file for {src.name}",
+                    file=_rel(src, workspace),
                 )
+            )
 
 
 def _check_todo_only(

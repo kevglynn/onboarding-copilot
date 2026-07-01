@@ -137,6 +137,20 @@ class TestCheckerDetectionGaps:
         result = check_workspace(tmp_path, profile)
         assert "DIFF-F-001" in [v.rule_id for v in result.violations]
 
+    def test_missing_test_flagged_for_public_module(self, tmp_path, profile):
+        """A PUBLIC source module with no matching test is flagged, not just
+        private (underscore-prefixed) modules.
+
+        The documented SK-T-002 rule is 'flag a source module that has no
+        matching test file' — with no private-only qualifier. This guards
+        against the checker silently ignoring public API files.
+        """
+        (tmp_path / "rank.py").write_text(
+            '"""Public module."""\n\n\ndef sharpen(image):\n    return image\n'
+        )
+        result = check_workspace(tmp_path, profile)
+        assert "SK-T-002" in [v.rule_id for v in result.violations]
+
     def test_flags_missing_required_docstring_section(self, tmp_path, profile):
         """A numpydoc function missing a required section is flagged."""
         (tmp_path / "_m.py").write_text(

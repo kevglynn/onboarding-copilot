@@ -201,22 +201,34 @@ ob brief --role devops --workspace examples/safe-first-contrib
 **Goal:** Prove maintainability. The team owns the profile. Changing a
 convention immediately changes what the tool enforces. No code changes.
 
-### In Cursor
-
-1. Open `profiles/scikit-image.yaml`
-2. Live edit: add a new deprecated API entry (e.g., mark `skimage.filters.median`
-   as deprecated with replacement `skimage.filters.rank.median`)
-3. Save the file
-
-### In Terminal
+### In Terminal — establish the baseline
 
 ```bash
 ob check examples/bad-first-contrib
 ```
 
-4. Re-run check — the new deprecation warning appears in the output
-5. Point at it: "I changed one line in the YAML. Every engineer, every
-   pipeline, and every Cursor rule now enforces this new convention."
+1. Baseline: **5 violations**, including `SK-D-001` for the deprecated
+   `skimage.filters.median`.
+
+### In Cursor — change one convention
+
+2. Open `profiles/scikit-image.yaml`, find the `deprecated_apis` section, and
+   temporarily **remove** the `skimage.filters.median` entry (its three lines:
+   `symbol` / `replacement` / `reason`)
+3. Save the file
+
+### In Terminal — watch it propagate
+
+```bash
+ob check examples/bad-first-contrib
+```
+
+4. Now **4 violations** — `SK-D-001` is gone. The tool re-read the profile on
+   this run: no restart, no code change.
+5. Re-add the entry (Cmd/Ctrl+Z, save) and re-run — back to **5**.
+6. Point at it: "I changed one line in the YAML and the enforced rule set
+   changed with it. Every engineer, every pipeline, and every Cursor rule
+   reads this same file."
 
 **Narration:**
 

@@ -27,10 +27,11 @@ profiles. The YAML schema already supports this with minimal changes.
 
 ## 3. Template-driven role briefs — no code-aware content
 
-Role briefs are generated from the workspace metadata (file list,
-profile rules, checklist status), not from reading and understanding
-the actual source code. The PM brief says "new filter helper" because
-the scaffold told it so, not because it analyzed the implementation.
+Role briefs are generated from the workspace metadata (file counts,
+profile rules, PLAN.md presence), not from reading and understanding the
+actual source code. For example, the PM brief states the change "adds new
+functionality" and reports the file counts and the number of path/deprecation
+rules in force — it does not analyze what the implementation actually does.
 
 **In a real engagement:** Use the Cursor agent to generate code-aware
 summaries that feed into the brief templates. The template structure

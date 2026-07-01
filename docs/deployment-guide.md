@@ -87,14 +87,16 @@ different layers, no overlap.
 
 ## Success Metrics
 
-Measure before and after the rollout:
+Establish a baseline before rollout, then track the trend. Set your own targets
+from that baseline — the direction of travel is what matters, not a headline
+percentage:
 
-| Metric | How to measure | Target |
+| Metric | How to measure | What good looks like |
 |--------|---------------|--------|
-| Convention violations per PR | Count `ob check` failures in CI logs | 50% reduction in 30 days |
-| Review comment rate (nitpicks) | Tag "convention" comments in your review tool | 40% reduction |
-| Time to first merged PR (new hires) | Track from start date to first merge | Measurable improvement |
-| Profile update frequency | Git log on the profile YAML | At least monthly (proves the team owns it) |
+| Convention violations per PR | Count `ob check` failures in CI logs | Downward trend vs. your baseline |
+| Review comment rate (nitpicks) | Tag "convention" comments in your review tool | Downward trend vs. baseline |
+| Time to first merged PR (new hires) | Track from start date to first merge | Downward trend vs. baseline |
+| Profile update frequency | Git log on the profile YAML | Regular updates (proves the team owns it) |
 
 ## What You'll Need from Cursor
 
