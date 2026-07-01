@@ -12,19 +12,25 @@ cd ~/cursor-takehome-assignment
 ob --version                         # CLI responds
 pytest --tb=short -q                 # all green
 ruff check .                         # clean
-ls examples/bad-first-contrib/       # seeded violations present
-ls examples/safe-first-contrib/      # clean example present
-pytest tests/test_mcp_server.py::TestMCPServerRegistration -q   # MCP serves 7 resources
+
+# Stage the demo workspace (idempotent — safe to re-run)
+bash scripts/setup-scikit-image-demo.sh
 ```
 
-- [ ] Cursor open with repo loaded, rules active
+- [ ] scikit-image demo workspace staged at `~/scikit-image-demo`
+- [ ] Cursor open with **scikit-image-demo** loaded as workspace (not the assignment repo)
 - [ ] Cursor → Settings → MCP shows `onboarding-copilot` connected (green dot,
-      7 resources). If not, reload Cursor after running setup (so `.venv` exists).
+      7 resources). If not, reload Cursor window.
 - [ ] Terminal split visible alongside Cursor
-- [ ] `docs/deck.md` rendered (Marp) or `docs/deck.pdf` open as backup
+- [ ] `docs/deck.html` open in browser (or `docs/deck.pdf` as backup)
 - [ ] Live-catch beat rehearsed (Cursor rule fires the five `SK-*` IDs; `ob check` confirms)
 - [ ] Font size ≥ 16pt in terminal, readable at projector distance
 - [ ] Rich output colors verified on projector (dark background)
+
+**Fallback:** If the scikit-image workspace is broken for any reason, open the
+assignment repo (`~/cursor-takehome-assignment`) and use `examples/bad-first-contrib`
+as the target. All commands work identically — the only difference is the directory
+names in the narration. See "Fallback Paths" at the end of this doc.
 
 ---
 
@@ -56,11 +62,34 @@ Show the two-layer diagram. Narrate:
 > I'll show you the artifact live, then we'll come back to tradeoffs
 > at the end."
 
-**Transition:** Close slides. Open Cursor full-screen with the repo loaded.
+**Transition:** Close slides. Switch to Cursor (scikit-image-demo workspace).
 
 ---
 
-## Section 1 — The Hook: Catch a Bad Contribution (0:03–0:08)
+## Setup Beat — "Configuring a Real Library" (0:03–0:04)
+
+**Surface:** Cursor (scikit-image-demo workspace)
+
+**Goal:** In 30 seconds, establish that this is a real open-source library with
+the copilot configured. The audience should feel: "oh, this works on real repos."
+
+1. Show the Cursor window — scikit-image file tree visible in the sidebar
+2. Flash: Settings → MCP → `onboarding-copilot` green dot (already connected)
+3. Open `profiles/scikit-image.yaml` briefly — point at it in the file tree
+
+**Narration:**
+
+> "I've taken a real open-source library — scikit-image — and configured it
+> with the onboarding copilot. That means: a YAML profile describing the
+> team's conventions, Cursor rules that teach the agent those conventions,
+> and an MCP server that exposes them programmatically. Let me show you
+> what happens when a new contributor makes their first attempt."
+
+**Transition:** Open `skimage/filters/_local_contrast.py` in the editor.
+
+---
+
+## Section 1 — The Hook: Catch a Bad Contribution (0:04–0:09)
 
 **Surface:** Cursor (primary) + terminal (secondary)
 
@@ -69,7 +98,7 @@ in real time — first by Cursor's rules, then by the CLI.
 
 ### In Cursor
 
-1. Open `examples/bad-first-contrib/filters/_local_contrast.py` in the editor
+1. Open `skimage/filters/_local_contrast.py` in the editor
 2. Point out the violations visually (deprecated API, TODO-only body)
 3. In Cursor chat/composer, type the exact prompt:
    "Review this file against our scikit-image conventions and list every
@@ -93,7 +122,7 @@ in real time — first by Cursor's rules, then by the CLI.
 ### In Terminal
 
 ```bash
-ob check examples/bad-first-contrib
+ob check --profile profiles/scikit-image.yaml first-contrib
 ```
 
 5. Rich-formatted output shows the same 5 violations with the same rule IDs
@@ -121,30 +150,31 @@ The rule moment can be re-attempted during the guardrails section.
 
 ---
 
-## Section 2 — The Clean Path (0:08–0:13)
+## Section 2 — The Clean Path (0:09–0:14)
 
 **Surface:** Terminal + Cursor file explorer
 
 **Goal:** Show contrast — bad contribution vs. safe contribution. The
 audience should feel the difference.
 
-### Show the safe example
+### Show a clean scikit-image file passes
 
 ```bash
-ob check examples/safe-first-contrib
+ob check --profile profiles/scikit-image.yaml skimage/filters/
 ```
 
-1. Clean green pass. No violations. Point at the contrast.
+1. Real scikit-image code passes (or shows only minor hits). Point at the contrast
+   with the planted bad file.
 
-### Show scaffold (if time)
+### Show scaffold
 
 ```bash
-ob scaffold --task "add adaptive histogram equalization helper"
+ob scaffold --task "add adaptive histogram equalization helper" --profile profiles/scikit-image.yaml
 ```
 
 2. New workspace appears under `workspaces/`
 3. Open the generated PLAN.md in Cursor — show profile rule citations
-4. Open the generated source stub and test stub
+4. Open the generated source stub and test stub in `skimage/exposure/`
 
 **Narration:**
 
@@ -153,13 +183,13 @@ ob scaffold --task "add adaptive histogram equalization helper"
 > structure, citing the conventions that apply. The new engineer starts
 > from a correct baseline instead of guessing."
 
-**Fallback:** If scaffold has any issues, skip it and just show the
-pre-committed safe-first-contrib example. The contrast between bad and
-good examples already tells the story.
+**Fallback:** If scaffold has any issues, point at a real clean scikit-image
+file that passes `ob check`. The contrast between bad and good already tells
+the story.
 
 ---
 
-## Section 3 — Multi-Audience Briefs (0:13–0:19)
+## Section 3 — Multi-Audience Briefs (0:14–0:20)
 
 **Surface:** Terminal (Rich output)
 
@@ -167,10 +197,10 @@ good examples already tells the story.
 views. This is the multi-audience differentiator.
 
 ```bash
-ob brief --role engineer --workspace examples/safe-first-contrib
-ob brief --role pm --workspace examples/safe-first-contrib
-ob brief --role qa --workspace examples/safe-first-contrib
-ob brief --role devops --workspace examples/safe-first-contrib
+ob brief --role engineer --workspace first-contrib --profile profiles/scikit-image.yaml
+ob brief --role pm --workspace first-contrib --profile profiles/scikit-image.yaml
+ob brief --role qa --workspace first-contrib --profile profiles/scikit-image.yaml
+ob brief --role devops --workspace first-contrib --profile profiles/scikit-image.yaml
 ```
 
 1. Run each in quick succession (or use a wrapper that runs all four)
@@ -194,7 +224,7 @@ ob brief --role devops --workspace examples/safe-first-contrib
 
 ---
 
-## Section 4 — Live Mutation: Profile Edit (0:19–0:25)
+## Section 4 — Live Mutation: Profile Edit (0:20–0:26)
 
 **Surface:** Cursor (editing) + terminal (verification)
 
@@ -204,7 +234,7 @@ convention immediately changes what the tool enforces. No code changes.
 ### In Terminal — establish the baseline
 
 ```bash
-ob check examples/bad-first-contrib
+ob check --profile profiles/scikit-image.yaml first-contrib
 ```
 
 1. Baseline: **5 violations**, including `SK-D-001` for the deprecated
@@ -220,7 +250,7 @@ ob check examples/bad-first-contrib
 ### In Terminal — watch it propagate
 
 ```bash
-ob check examples/bad-first-contrib
+ob check --profile profiles/scikit-image.yaml first-contrib
 ```
 
 4. Now **4 violations** — `SK-D-001` is gone. The tool re-read the profile on
@@ -241,7 +271,7 @@ This section has very low demo risk.
 
 ---
 
-## Section 5 — Guardrails: Approved Boundaries (0:25–0:28)
+## Section 5 — Guardrails: Approved Boundaries (0:26–0:29)
 
 **Surface:** Terminal
 
@@ -250,7 +280,7 @@ suggestions. Show a refusal.
 
 ```bash
 # Attempt to scaffold outside approved directories
-ob scaffold --task "add helper to skimage/_vendored/"
+ob scaffold --task "add helper to skimage/_vendored/" --profile profiles/scikit-image.yaml
 ```
 
 1. Tool refuses with a clear explanation: directory not in approved list
@@ -265,7 +295,7 @@ ob scaffold --task "add helper to skimage/_vendored/"
 
 ---
 
-## Section 6 — CI: Same Checks, Production Path (0:28–0:31)
+## Section 6 — CI: Same Checks, Production Path (0:29–0:32)
 
 **Surface:** Browser (GitHub Actions) or terminal
 
@@ -287,7 +317,7 @@ same commands locally: `ob check && pytest && ruff check .`
 
 ---
 
-## Closing Bookend — Slides (0:31–0:38)
+## Closing Bookend — Slides (0:32–0:38)
 
 **Surface:** Slide deck (Marp)
 
@@ -315,8 +345,8 @@ For each: "Here's how I'd address it in a real engagement."
 Show the swap live — same workspace, two profiles:
 
 ```bash
-ob check examples/bad-first-contrib                          # 5 SK-* violations
-ob check --profile profiles/diffusers.yaml examples/bad-first-contrib  # 2 DIFF-* violations
+ob check --profile profiles/scikit-image.yaml first-contrib           # 5 SK-* violations
+ob check --profile profiles/diffusers.yaml first-contrib              # 2 DIFF-* violations
 ```
 
 Narrate:
@@ -408,13 +438,14 @@ Pause. Then:
 | Section | Minutes | Cumulative | Risk Level |
 |---------|---------|------------|------------|
 | Opening slides | 3 | 0:03 | Low |
-| Hook: bad contribution | 5 | 0:08 | Medium (Cursor rule) |
-| Clean path + scaffold | 5 | 0:13 | Low |
-| Multi-audience briefs | 6 | 0:19 | Low |
-| Live mutation | 6 | 0:25 | Low |
-| Guardrails | 3 | 0:28 | Low |
-| CI | 3 | 0:31 | Low |
-| Closing slides | 7 | 0:38 | Low |
+| Setup beat (scikit-image) | 1 | 0:04 | Low |
+| Hook: bad contribution | 5 | 0:09 | Medium (Cursor rule) |
+| Clean path + scaffold | 5 | 0:14 | Low |
+| Multi-audience briefs | 6 | 0:20 | Low |
+| Live mutation | 6 | 0:26 | Low |
+| Guardrails | 3 | 0:29 | Low |
+| CI | 3 | 0:32 | Low |
+| Closing slides | 6 | 0:38 | Low |
 | Buffer + Q&A | 7 | 0:45 | — |
 
 **Total demo risk:** One medium-risk moment (Cursor rule activation in
@@ -436,3 +467,20 @@ Section 1). Everything else is deterministic. Fallback: skip to terminal
    live edit is the profile YAML change, which is one line.
 6. **Don't alt-tab to a browser unnecessarily.** Cursor + terminal
    should cover 90% of the demo. Browser only for GitHub CI if needed.
+
+---
+
+## Fallback Paths
+
+If the scikit-image demo workspace (`~/scikit-image-demo`) is unusable:
+
+1. **Open the assignment repo** (`~/cursor-takehome-assignment`) in Cursor instead
+2. **Adjust paths:** replace `first-contrib` with `examples/bad-first-contrib`
+   and `skimage/filters/_local_contrast.py` with
+   `examples/bad-first-contrib/filters/_local_contrast.py`
+3. **Drop the setup beat** — jump straight from slides to Section 1
+4. **All other beats remain identical** — same rule IDs, same scaffold behavior,
+   same brief output, same mutation, same guardrails
+
+This fallback is the original demo flow. Nothing breaks — you just lose the
+"this is a real library" framing.

@@ -44,6 +44,11 @@ ob brief --role <engineer|pm|qa|devops> --workspace <path>  # role-specific brie
 All three accept `--profile <path>` to swap the library profile. The default
 is `profiles/scikit-image.yaml`.
 
+**Invocation:** The `ob` CLI is available at `./bin/ob` in this workspace. If
+`ob` is not found on PATH, use `./bin/ob` (or the absolute path `bin/ob` from
+the workspace root). Always pass `--profile profiles/scikit-image.yaml` when
+running from this workspace.
+
 ### Profile YAML (`profiles/`)
 
 The single source of truth for conventions. The CLI reads it, these rules
